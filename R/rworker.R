@@ -325,8 +325,3 @@ tmpsrc <- function(fnlist) {
     }
     return(tmp)
 }
-
-#' @keywords internal
-cleantmp <- function(tmpdir) {
-    file.remove()
-}
