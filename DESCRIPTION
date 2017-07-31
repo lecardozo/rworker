@@ -8,9 +8,9 @@ BugReports: https://github.com/lecardozo/rworker/issues
 Depends:
     R (>= 3.4.0)
 Imports:
-    R6
-    redux
-    jsonlite
+    R6,
+    redux,
+    jsonlite,
     base64enc
 Suggests:
     testthat

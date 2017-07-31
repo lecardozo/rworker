@@ -3,3 +3,4 @@
 .RData
 .Rbuildignore
 rworker.Rproj
+R/*sw*

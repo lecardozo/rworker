@@ -1,7 +1,7 @@
 #' @importFrom R6 R6Class
 #' @import redux
 #' @importFrom jsonlite fromJSON toJSON
-#' @importFrom base64enc base64_dec
+#' @importFrom base64enc base64decode
 NULL
 
 #' Queue object
@@ -283,7 +283,7 @@ Consumer <- R6::R6Class(
             task <- action$headers$task
             task_id <- action$headers$id
             cat('Received task', task_id, ':', task, '\n')
-            params <- jsonlite::fromJSON(rawToChar(base64enc::base64_dec(action$body)))[[2]]
+            params <- jsonlite::fromJSON(rawToChar(base64enc::base64decode(action$body)))[[2]]
             return(list(task=task, params=params))
         },
 
