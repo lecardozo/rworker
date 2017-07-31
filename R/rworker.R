@@ -10,7 +10,7 @@ NULL
 #' message brokers using the AMQP Protocol.
 #'
 #' @section Usage:
-#' \preformatted{queue <- Queue$new(provider='redis', addr='localhost',
+#' \preformatted{queue <- Queue$new(provider='redis', host='localhost',
 #'                                    port=6379, name='celery')
 #' msg <- queue$pull()
 #' queue$push(msg)

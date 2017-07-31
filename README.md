@@ -2,5 +2,5 @@
 Remote R functions execution mediated by Redis.
 ## Usage
 ```
-rworker your_functions.R --queue='your-queue-name' --redis-addr='your-redis-ip-addr' --workers=3
+rworker your_functions.R --provider=redis --queue=your-queue-name --host=localhost --workers=3
 ```
