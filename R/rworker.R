@@ -240,6 +240,8 @@ Consumer <- R6::R6Class(
             } else {
                 self$tasks = tasks
             }
+
+            self$nworkers = nworkers
             
         },
 
