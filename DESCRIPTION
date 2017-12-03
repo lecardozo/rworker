@@ -11,7 +11,10 @@ Imports:
     R6,
     redux,
     jsonlite,
-    base64enc
+    base64enc,
+    processx,
+    glue,
+    futile.logger
 Suggests:
     testthat
 License: GPL-2
