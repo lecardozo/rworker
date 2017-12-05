@@ -66,7 +66,7 @@ Worker <- R6::R6Class(
             args = glue::glue('source("{self$tasks$src}"); {FUN}({params})')
             self$process = processx::process$new(command=self$interpreter,
                                            args=c('-e', args),
-                                           stdout='|', stderr='|',echo_cmd=T) 
+                                           stdout='|', stderr='|') 
         },
 
         update_state = function(status, result=NULL, progress=NULL) {
