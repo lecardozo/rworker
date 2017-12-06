@@ -57,7 +57,7 @@ tmpsrc <- function(fnlist) {
         fun <- capture.output(fnlist[[i]])
         fun <- fun[!grepl('<bytecode|environment.*>', fun)]
         fun[1] <- paste(fname, "<-", fun[1])
-        write(paste0(fname, '<-', fun), tmp, append=TRUE)
+        write(fun, tmp, append=TRUE)
     }
     return(tmp)
 }
