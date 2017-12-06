@@ -34,3 +34,8 @@ from celery import Celery
 worker = Celery('app', broker="redis://localhost:6379/0", backend="redis://localhost:6379/0")
 worker.send_task('long_running_task')
 ```
+## Future decisions / TODO
+- Better way to share task code between Consumer and Worker
+  - ZMQ for communication, maybe ?
+- Spawn new process every new task vs keep pool of processes listening for tasks ?
+- Should workers be able to update task state ?
