@@ -62,6 +62,7 @@ Worker <- R6::R6Class(
             self$task_id = id
             self$register_backend(backend_url)
             self$interpreter = Sys.which('Rscript')[[1]]
+            self$status = 'PENDING'
 
             args = glue::glue('source("{self$tasks$src}"); {FUN}({params})')
             self$process = processx::process$new(command=self$interpreter,
