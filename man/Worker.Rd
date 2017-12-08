@@ -10,13 +10,9 @@ message broker. It uses processx to spawn background processes.
 \section{Usage}{
 
 \preformatted{
-dummy1 <- function(){Sys.sleep(5); print('dummy1')}
-dummy2 <- function(){Sys.sleep(5); print('dummy2')}
+ w <- worker()
 
-tasks <- Tasks$new(tasklist=list(dummy1=dummy1, dummy2=dummy2))
-
-worker1 <- Worker$new(FUN='dummy1',tasks=tasks)
-worker2 <- Worker$new(FUN='dummy2',tasks=tasks)
+ \dontrun{w$listen()}
 }
 }
 

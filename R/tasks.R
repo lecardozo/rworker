@@ -25,7 +25,7 @@ NULL
 NULL
 
 #' @export
-Tasks <- R6::R6Class(
+Task <- R6::R6Class(
     'Tasks',
     public = list(
         tasklist = NULL,
@@ -48,6 +48,20 @@ Tasks <- R6::R6Class(
         }
     )
 )
+
+
+#' Create new task 
+#'
+#' This function generates new Tasks object.
+#'
+#' @section Usage:
+#' @name tasks
+task <- function(name, FUN, progress_patterns) {
+    if (missing(name)) {stop('name argument is not optional')}
+    if (missing(FUN)) {stop('FUN argument is not optional')}
+
+}
+
 
 #' @keywords internal
 tmpsrc <- function(fnlist) {

@@ -32,16 +32,16 @@ Queue <- R6::R6Class(
         provider = NULL,
         host = NULL,
         port = NULL,
-        name = NULL,
+        qname = NULL,
 
-        initialize = function(name, provider='redis', host='localhost',
+        initialize = function(qname='celery', provider='redis', host='localhost',
                               port=6379) {
             self$host = host
             self$port = port
-            if(missing(name)) {
+            if(missing(qname)) {
                    stop('Must provide Queue name')
             } else {
-                self$name = name
+                self$qname = qname
             }
             if (provider == 'redis') {
                 self$provider = provider
@@ -52,14 +52,14 @@ Queue <- R6::R6Class(
 
         pull = function() {
             if (self$provider == 'redis') {
-                msg = private$channel$LPOP(self$name)
+                msg = private$channel$LPOP(self$qname)
             }
             return(msg)
         },
 
         push = function(msg) {
             if (self$provider == 'redis') {
-                private$channel$LPUSH(self$name, msg)
+                private$channel$LPUSH(self$qname, msg)
             }
         }
     ),

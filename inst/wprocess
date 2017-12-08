@@ -1,0 +1,2 @@
+w = rworker::worker()
+w$listen()
