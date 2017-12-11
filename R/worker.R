@@ -32,40 +32,52 @@ NULL
 Worker <- R6::R6Class(
     'Worker',
     public = list(
-        initialize = function() {},
+        warnings = NULL,
+        errors = NULL,
+        current_task = NULL,
+
+        initialize = function() {
+            private$context = rzmq::init.context()
+            private$psock = rzmq::init.socket(private$context, 'ZMQ_PULL')
+            private$ssock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
+            rzmq::bind.socket(private$psock, "ipc:///tmp/rworkerp.sock")
+            rzmq::connect.socket(private$ssock, "ipc:///tmp/rworkers.sock")
+        },
 
         listen = function() {
-            context = init.context()
-            socket = init.socket(context, 'ZMQ_PULL')
-            bind.socket(socket, 'ipc:///tmp/rworkerp.sock')
             while(TRUE) {
-                msg = receive.socket(socket)
-                msg$task()
-                Sys.sleep(1)
+                msg = receive.socket(private$psock)
+                self$current_task = msg$task_id
+
+                tryCatch({ do.call(msg$task, msg$args) },
+                    error=function(e) { self$errors = e },
+                    warning=function(w) { self$warnings = w },
+                    finally=self$report())
             }
+        },
+
+        report = function() {
+            if (!is.null(self$errors)) {
+                status = 'FAILED'
+            } else {
+                status = 'SUCCESS'
+            }
+
+            send.socket(private$ssock,
+                        data=list(status=status,
+                                  errors=self$errors,
+                                  warnings=self$warnings,
+                                  task_id=self$current_task))
+            self$errors = NULL
+            self$warnings = NULL
+            self$current_task = NULL
         }
+    ),
 
-
-        #update_state = function(status, result=NULL, progress=NULL) {
-        #    status = toupper(status)
-        #    result = ifelse(is.null(result), "null", result)
-        #    progress = ifelse(is.null(progress), "null", progress)
-        #    message = glue::glue('{{
-        #                            "status":"{status}",
-        #                            "result": {result},
-        #                            "info":{{
-        #                                "progress": {progress},
-        #                                "bla":"bla"
-        #                            }},
-        #                            "task_id":"{self$task_id}",
-        #                            "traceback":null,
-        #                            "children":null
-        #                          }}')
-        #    self$status = status
-        #    self$backend$SET(self$backend_id, message)
-        #},
-
-
+    private = list(
+        context = NULL,
+        psock = NULL,
+        ssock = NULL
     ),
 )
 

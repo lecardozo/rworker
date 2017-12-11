@@ -67,19 +67,20 @@ Rworker <- R6::R6Class(
             self$queue = do.call(Queue$new, append(parsed, list(qname=qname)))
             self$qname = qname
             self$workers = workers
-            self$backend = backend
+            self$backend = register_backend(backend)
 
             private$rscript = Sys.which('Rscript')[['Rscript']]
             private$wproc = system.file('wprocess', package='rworker')
             private$tasklist = list()
-            
+
             # ZMQ initialization
-            self$set_ssock()
+            private$context = rzmq::init.context()
+            self$connect_ssock()
             self$start_pool(workers)
-            self$set_psock()
+            self$bind_psock()
             
         },
-        
+
         # Start processes pool
         start_pool = function(workers) {
             private$workers_list = lapply(1:workers, function(x){
@@ -89,7 +90,7 @@ Rworker <- R6::R6Class(
                               })
             private$workers_status = rep('LISTENING', workers)
         },
-        
+
         # Create and register new task 
         task = function(FUN, name, ...) {
             private$tasklist[[name]] = FUN
@@ -97,7 +98,7 @@ Rworker <- R6::R6Class(
 
         # Return registered tasks
         tasks = function() {
-            return(private$tasklist) 
+            return(private$tasklist)
         },
 
         # Listen for new messages from message queue
@@ -108,52 +109,60 @@ Rworker <- R6::R6Class(
                 'Listening to {self$queue$provider} in {self$queue$host}...'
               ),
               'info')
-            
+
             while (TRUE) {
                 msg = self$queue$pull()
 
-                 # adds new jobs
+                # send job to worker
                 if (!is.null(msg)){
-                    if (self$available()) {
-                        procmsg = private$process_msg(msg)
-                        tsk = procmsg[['task']]
-                        prms = procmsg[['params']]
-                        self$execute(tsk)
-                    } else {
-                        # push task back into the queue
-                        self$queue$push(msg)
-                    }
+                    procmsg = private$process_msg(msg)
+                    tsk = procmsg[['task']]
+                    prms = procmsg[['params']]
+                    task_id = procmsg[['task_id']]
+                    self$execute(task=procmsg[['task']],
+                                 args=procmsg[['params']],
+                                 task_idprocmsg[['task_id']])
                 }
-                selg$update_status()
+
+                self$update_status()
                 Sys.sleep(0.1)
             }
         },
 
-        execute = function(task, ...) {
+        execute = function(task, params, task_id) {
             send.socket(private$psock,
-                        data=list(task=private$tasklist[[task]], 
-                                  args=list(...)))
+                        data=list(task=private$tasklist[[task]],
+                                  args=params), task_id=task_id)
         },
 
         update_status = function() {
-            msg = receive.socket(private$ssock)
-            print(msg)
+            report = receive.socket(private$ssock)
+            message = glue::glue('{{
+                                    "status":"{report$status}",
+                                    "result":null,
+                                    "task_id":"{report$task_id}",
+                                    "traceback":"{report$errors}",
+                                    "children":null
+                                  }}')
+            self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'))
         },
 
-        available = function() {
-            return(TRUE) 
+        register_backend = function(url) {
+            backend = parse_url(url)
+            if (backend[["provider"]] == "redis") {
+                return(redux::hiredis(host=backend[["host"]],
+                                      port=backend[["port"]]))
+            }
         },
 
-        set_psock = function() {
-            private$pcontext = rzmq::init.context()
-            private$psock = rzmq::init.socket(private$pcontext, 'ZMQ_PUSH')
+        connect_psock = function() {
+            private$psock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
             rzmq::connect.socket(private$psock, "ipc:///tmp/rworkerp.sock")
         },
 
-        set_ssock = function() {
-            private$scontext = rzmq::init.context()
-            private$ssock = rzmq::init.socket(private$scontext, 'ZMQ_PULL')
-            rzmq::connect.socket(private$ssock, "ipc:///tmp/rworkers.sock")
+        bind_ssock = function() {
+            private$ssock = rzmq::init.socket(private$context, 'ZMQ_PULL')
+            rzmq::bind.socket(private$ssock, "ipc:///tmp/rworkers.sock")
         }
     ),
 
@@ -162,8 +171,7 @@ Rworker <- R6::R6Class(
         workers_list = NULL,
         workers_status = NULL,
         tasklist = NULL,
-        pcontext = NULL,
-        scontext = NULL,
+        context = NULL,
         psock = NULL,
         ssock = NULL,
 
@@ -180,7 +188,7 @@ Rworker <- R6::R6Class(
 
 
 #' @export
-rworker <- function(qname='celery', workers=2, 
+rworker <- function(qname='celery', workers=2,
                     queue='redis://redis:6379',
                     backend='redis://redis:6379') {
     return(Rworker$new(qname=qname, workers=workers, 
