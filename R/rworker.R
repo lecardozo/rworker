@@ -53,6 +53,7 @@ Rworker <- R6::R6Class(
             return(private$workers_list)
         }
     ),
+
     public = list(
         qname = NULL,
         workers = NULL,
@@ -62,7 +63,6 @@ Rworker <- R6::R6Class(
         initialize = function(qname='celery', workers=1,
                               queue="redis://localhost:6379",
                               backend="redis://localhost:6379"){
-
             parsed = parse_url(queue)
             self$queue = do.call(Queue$new, append(parsed, list(qname=qname)))
             self$qname = qname
@@ -75,9 +75,9 @@ Rworker <- R6::R6Class(
 
             # ZMQ initialization
             private$context = rzmq::init.context()
-            self$connect_ssock()
+            self$bind_ssock()
             self$start_pool(workers)
-            self$bind_psock()
+            self$connect_psock()
             
         },
 
@@ -88,7 +88,6 @@ Rworker <- R6::R6Class(
                                                       args=private$wproc,
                                                       stdout='|',stderr='|')
                               })
-            private$workers_status = rep('LISTENING', workers)
         },
 
         # Create and register new task 
@@ -112,7 +111,6 @@ Rworker <- R6::R6Class(
 
             while (TRUE) {
                 msg = self$queue$pull()
-
                 # send job to worker
                 if (!is.null(msg)){
                     procmsg = private$process_msg(msg)
@@ -120,8 +118,8 @@ Rworker <- R6::R6Class(
                     prms = procmsg[['params']]
                     task_id = procmsg[['task_id']]
                     self$execute(task=procmsg[['task']],
-                                 args=procmsg[['params']],
-                                 task_idprocmsg[['task_id']])
+                                 params=procmsg[['params']],
+                                 task_id=procmsg[['task_id']])
                 }
 
                 self$update_status()
@@ -132,19 +130,24 @@ Rworker <- R6::R6Class(
         execute = function(task, params, task_id) {
             send.socket(private$psock,
                         data=list(task=private$tasklist[[task]],
-                                  args=params), task_id=task_id)
+                                  args=params, task_id=task_id))
         },
 
         update_status = function() {
-            report = receive.socket(private$ssock)
-            message = glue::glue('{{
-                                    "status":"{report$status}",
-                                    "result":null,
-                                    "task_id":"{report$task_id}",
-                                    "traceback":"{report$errors}",
-                                    "children":null
-                                  }}')
-            self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'))
+            report = receive.socket(private$ssock, dont.wait=TRUE)
+            if (!is.null(report)) {
+                errors = report$errors
+                errors = ifelse(is.null(errors), 'null', errors)
+                message = glue::glue('{{
+                                        "status":"{report$status}",
+                                        "result":null,
+                                        "task_id":"{report$task_id}",
+                                        "traceback":"{errors}",
+                                        "children":null
+                                      }}')
+                self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),
+                                 message)
+            }
         },
 
         register_backend = function(url) {
@@ -169,7 +172,6 @@ Rworker <- R6::R6Class(
     private = list(
         rscript = NULL,
         workers_list = NULL,
-        workers_status = NULL,
         tasklist = NULL,
         context = NULL,
         psock = NULL,
@@ -189,8 +191,8 @@ Rworker <- R6::R6Class(
 
 #' @export
 rworker <- function(qname='celery', workers=2,
-                    queue='redis://redis:6379',
-                    backend='redis://redis:6379') {
+                    queue='redis://localhost:6379',
+                    backend='redis://localhost:6379') {
     return(Rworker$new(qname=qname, workers=workers, 
                        queue=queue, backend=backend))
 }
