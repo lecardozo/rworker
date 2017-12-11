@@ -67,7 +67,7 @@ Rworker <- R6::R6Class(
             self$queue = do.call(Queue$new, append(parsed, list(qname=qname)))
             self$qname = qname
             self$workers = workers
-            self$backend = register_backend(backend)
+            self$backend = self$register_backend(backend)
 
             private$rscript = Sys.which('Rscript')[['Rscript']]
             private$wproc = system.file('wprocess', package='rworker')
