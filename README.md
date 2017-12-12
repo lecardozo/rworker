@@ -10,22 +10,23 @@ triggered by [Celery](https://github.com/celery/celery) (asynchronous task queue
 ##### Start consuming tasks from R
 ```R
 library(rworker)
+library(magrittr)
 
-long_running_task <- function() { Sys.sleep(10) }
+# Broker url
+redis_url <- 'redis://localhost:6379'
 
-# This object stores the functions you want to trigger remotelly
-tasks <- Tasks$new(tasklist=list(long_running_task=long_running_task))
+# Instantiate Rworker object
+consumer <- rworker(qname='celery', workers=2, queue=redis_url, backend=redis_url)
 
-# This represents the queue where your tasks calls will be stored
-queue <- Queue$new(provider='redis', host='localhost', port=6379, name='celery')
+# Register tasks
+(function(){
+    Sys.sleep(5)
+}) %>% consumer$task(name='long_running_task')
 
-# This is the supervisor that spawns tasks sent to the queue
-consumer <- Consumer$new(queue=queue, tasks=tasks, 
-                         nworkers=2, backend_url='redis://localhost:6379')
+# Start consuming messages
 consumer$consume()
 ```
-The `consumer` listens to changes on the queue and spawns new processes 
-(using the [**processx**](https://github.com/r-lib/processx) package)
+The `rworker` function returns a `Rworker` object. This object is responsible for registering tasks, listening for messages coming from the message queue and triggering tasks execution on background processes
 
 ##### Send tasks from Python
 ```python
@@ -35,7 +36,5 @@ worker = Celery('app', broker="redis://localhost:6379/0", backend="redis://local
 worker.send_task('long_running_task')
 ```
 ## Future decisions / TODO
-- Better way to share task code between Consumer and Worker
-  - ZMQ for communication, maybe ?
-- Spawn new process every new task vs keep pool of processes listening for tasks ?
-- Should workers be able to update task state ?
+- [x] ZeroMQ for master~worker communication
+- [ ] Integration tests or mocking?

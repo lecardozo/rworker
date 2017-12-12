@@ -6,19 +6,25 @@ NULL
 
 #' Worker object
 #'
-#' This object is responsible for running tasks consumed from the
-#' message broker. It uses processx to spawn background processes.
+#' This object listens for tasks sent by some Rworker instance.
+#' After running, the status of the execution is sent back 
+#' to the Rworker instance.
 #'
 #' @section Usage:
-#' \dontrun{
-#' \preformatted{
-#'  w <- worker()
+#' ```
+#' w <- worker()
+#' ```
 #' 
-#'  w$listen()
-#' }
-#' }
-#'
+#' @section Details:
+#' `$listen()` listens for tasks sent by the Rworker instance
+#' `$report()` returns the task execution state to Rworker instance 
+#' @rdname Worker
 #' @name Worker
+#' @examples
+#' \dontrun{
+#' w <- worker()
+#' w$listen()
+#' }
 NULL
 
 #' @export
@@ -74,7 +80,7 @@ Worker <- R6::R6Class(
     ),
 )
 
-#' @name Worker
+#' @rdname Worker
 #' @export
 worker = function() {
     return(Worker$new())

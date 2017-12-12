@@ -19,11 +19,11 @@ queue$push(msg)
 \section{Arguments}{
 
 \describe{
-    \item{queue:}{A \code{Queue} object.}
-    \item{provider:}{Character scalar referring to the message broker provider.
-                    \code{'redis'} is the only available option until now.}
-    \item{host:}{Character. Message broker instance address.}
-    \item{port:}{Numeric. Message broker port.}
+\item{queue:}{A \code{Queue} object.}
+\item{provider:}{Character scalar referring to the message broker provider.
+\code{'redis'} is the only available option until now.}
+\item{host:}{Character. Message broker instance address.}
+\item{port:}{Numeric. Message broker port.}
 }
 }
 

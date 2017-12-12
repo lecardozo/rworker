@@ -2,24 +2,30 @@
 % Please edit documentation in R/worker.R
 \name{Worker}
 \alias{Worker}
-\alias{Worker}
 \alias{worker}
 \title{Worker object}
 \usage{
 worker()
 }
 \description{
-This object is responsible for running tasks consumed from the
-message broker. It uses processx to spawn background processes.
+This object listens for tasks sent by some Rworker instance.
+After running, the status of the execution is sent back
+to the Rworker instance.
 }
 \section{Usage}{
+\preformatted{w <- worker()
+}
+}
 
+\section{Details}{
+
+\code{$listen()} listens for tasks sent by the Rworker instance
+\code{$report()} returns the task execution state to Rworker instance
+}
+
+\examples{
 \dontrun{
-\preformatted{
- w <- worker()
-
- w$listen()
+w <- worker()
+w$listen()
 }
 }
-}
-

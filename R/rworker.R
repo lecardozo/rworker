@@ -2,9 +2,7 @@
 #' @import redux
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom base64enc base64decode
-#' @import futile.logger
 #' @import glue
-#' @import crayon
 #' @import rzmq
 NULL
 
@@ -15,34 +13,57 @@ NULL
 #' process pool.
 #'
 #' @section Usage:
+#' ```
+#' rwork <- rworker()
+#' ```
+#'
+#' 
+#' @param qname The name of the message queue.
+#' @param workers The number of background worker processes.
+#' @param queue A url string of type "provider://host:port".
+#' @param backend A url string of type "provider://host:port".
+#' 
+#' @section Details:
+#' `$new()` creates new Rworker instance. Process pool is started and Queue 
+#'  connection is established during instantiation.
+#'
+#' `$start_pool()` starts all processes in the background process pool
+#'
+#' `$kill_pool()` kills all processes in the background process pool
+#'
+#' `$task()` registers function as task to be remotelly executed
+#'
+#' `$tasks()` returns all registered tasks
+#'
+#' `$consume()` listens for message broker messages and send them to be executed
+#'  by the worker process pool
+#'
+#' `$execute()` method used to send tasks and arguments for background execution
+#'
+#' `$update_state()` method used to gather tasks execution status from worker pool
+#'
+#' `register_backend()` registers results backend
+#'
+#' @rdname Rworker
+#' @name Rworker
+#' @examples
 #' \dontrun{
-#'    \preformatted{
-#'  
-#'        # Create rworker instance
-#'        rwork <- rworker()
+#' rwork <- rworker()
 #'
-#'        # Register task
-#'        (function() { 
-#'            Sys.sleep(5)
-#'        }) %>% rwork$task(name='long_running_task')
-#'
-#'        # Send task for background execution
-#'        rwork$execute('long_running_task')
-#'
-#'        # Listen to messages from message queue
-#'        rwork$consume()
-#'      }
-#'
-#'  }
-#'
-#' @section Arguments:
-#' \describe{
-#'     \item{qname:}{The name of the message queue.}
-#'     \item{workers:}{The number of background worker processes.}
-#'     \item{queue:}{A url string of type "provider://host:port".}
-#'     \item{backend:}{A url string of type "provider://host:port".}
+#' # Register task
+#' myfun <- function() { 
+#'     Sys.sleep(5)
 #' }
-#' @name Rworker 
+#' rwork$task(myfun, name='long_running_task')
+#'
+#' # Send task for background execution
+#' rwork$execute('long_running_task')
+#'
+#' # Listen to messages from message queue
+#' rwork$consume()
+#'
+#' }
+#'
 NULL
 
 #' @export
@@ -76,10 +97,10 @@ Rworker <- R6::R6Class(
 
             # ZMQ initialization
             private$context = rzmq::init.context()
-            self$bind_ssock()
+            private$bind_ssock()
             self$start_pool(workers)
-            self$connect_psock()
-            
+            private$connect_psock()
+
         },
 
         # Start processes pool
@@ -131,7 +152,7 @@ Rworker <- R6::R6Class(
                                      task_id=procmsg[['task_id']])
                     }
 
-                    self$update_status()
+                    self$update_state()
                     Sys.sleep(0.1)
                 }
             }, finally = self$kill_pool())
@@ -143,7 +164,7 @@ Rworker <- R6::R6Class(
                                   args=params, task_id=task_id))
         },
 
-        update_status = function() {
+        update_state = function() {
             report = receive.socket(private$ssock, dont.wait=TRUE)
             if (!is.null(report)) {
                 message = list(status=report$status,
@@ -170,17 +191,8 @@ Rworker <- R6::R6Class(
                 return(redux::hiredis(host=backend[["host"]],
                                       port=backend[["port"]]))
             }
-        },
-
-        connect_psock = function() {
-            private$psock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
-            rzmq::connect.socket(private$psock, "ipc:///tmp/rworkerp.sock")
-        },
-
-        bind_ssock = function() {
-            private$ssock = rzmq::init.socket(private$context, 'ZMQ_PULL')
-            rzmq::bind.socket(private$ssock, "ipc:///tmp/rworkers.sock")
         }
+
     ),
 
     private = list(
@@ -198,11 +210,21 @@ Rworker <- R6::R6Class(
             log_it(glue::glue("Received task {task_id}: {task}"), 'info')
             params = jsonlite::fromJSON(rawToChar(base64enc::base64decode(action$body)))[[2]]
             return(list(task=task, params=params, task_id=task_id))
+        },
+
+        connect_psock = function() {
+            private$psock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
+            rzmq::connect.socket(private$psock, "ipc:///tmp/rworkerp.sock")
+        },
+
+        bind_ssock = function() {
+            private$ssock = rzmq::init.socket(private$context, 'ZMQ_PULL')
+            rzmq::bind.socket(private$ssock, "ipc:///tmp/rworkers.sock")
         }
     )
 )
 
-
+#' @rdname Rworker
 #' @export
 rworker <- function(qname='celery', workers=2,
                     queue='redis://localhost:6379',
