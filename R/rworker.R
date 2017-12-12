@@ -15,8 +15,9 @@ NULL
 #' process pool.
 #'
 #' @section Usage:
-#' \preformatted{
-#'  \dontrun{ 
+#' \dontrun{
+#'    \preformatted{
+#'  
 #'        # Create rworker instance
 #'        rwork <- rworker()
 #'
@@ -30,9 +31,9 @@ NULL
 #'
 #'        # Listen to messages from message queue
 #'        rwork$consume()
-#'  }
+#'      }
 #'
-#' }
+#'  }
 #'
 #' @section Arguments:
 #' \describe{
@@ -90,6 +91,14 @@ Rworker <- R6::R6Class(
                               })
         },
 
+        # Kill process pool
+        kill_pool = function() {
+            d = lapply(private$workers_list, function(p){
+                    p$kill()
+                })
+            private$workers_list = list()
+        },
+
         # Create and register new task 
         task = function(FUN, name, ...) {
             private$tasklist[[name]] = FUN
@@ -102,29 +111,30 @@ Rworker <- R6::R6Class(
 
         # Listen for new messages from message queue
         consume = function(verbose=TRUE) {
-            self$start_pool(self$workers)
             log_it(
               glue::glue(
                 'Listening to {self$queue$provider} in {self$queue$host}...'
               ),
               'info')
 
-            while (TRUE) {
-                msg = self$queue$pull()
-                # send job to worker
-                if (!is.null(msg)){
-                    procmsg = private$process_msg(msg)
-                    tsk = procmsg[['task']]
-                    prms = procmsg[['params']]
-                    task_id = procmsg[['task_id']]
-                    self$execute(task=procmsg[['task']],
-                                 params=procmsg[['params']],
-                                 task_id=procmsg[['task_id']])
-                }
+            tryCatch({
+                while (TRUE) {
+                    msg = self$queue$pull()
+                    # send job to worker
+                    if (!is.null(msg)){
+                        procmsg = private$process_msg(msg)
+                        tsk = procmsg[['task']]
+                        prms = procmsg[['params']]
+                        task_id = procmsg[['task_id']]
+                        self$execute(task=procmsg[['task']],
+                                     params=procmsg[['params']],
+                                     task_id=procmsg[['task_id']])
+                    }
 
-                self$update_status()
-                Sys.sleep(0.1)
-            }
+                    self$update_status()
+                    Sys.sleep(0.1)
+                }
+            }, finally = self$kill_pool())
         },
 
         execute = function(task, params, task_id) {
@@ -136,15 +146,19 @@ Rworker <- R6::R6Class(
         update_status = function() {
             report = receive.socket(private$ssock, dont.wait=TRUE)
             if (!is.null(report)) {
-                errors = report$errors
-                errors = ifelse(is.null(errors), 'null', errors)
-                message = glue::glue('{{
-                                        "status":"{report$status}",
-                                        "result":null,
-                                        "task_id":"{report$task_id}",
-                                        "traceback":"{errors}",
-                                        "children":null
-                                      }}')
+                message = list(status=report$status,
+                               result=NULL,
+                               task_id=report$task_id,
+                               traceback=report$errors,
+                               children=NULL)
+                message = jsonlite::toJSON(message, auto_unbox=TRUE, null='null')
+                if (report$status == 'ERROR') {
+                    string = glue::glue('Task {report$task_id} failed with error: {report$errors}')
+                    log_it(string, 'error')
+                } else if (report$status == 'SUCCESS') {
+                    string = glue::glue('Task {report$task_id} succeeded')
+                    log_it(string, 'success')
+                }
                 self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),
                                  message)
             }

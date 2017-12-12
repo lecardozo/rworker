@@ -10,21 +10,14 @@ NULL
 #' message broker. It uses processx to spawn background processes.
 #'
 #' @section Usage:
+#' \dontrun{
 #' \preformatted{
 #'  w <- worker()
 #' 
-#'  \dontrun{w$listen()}
+#'  w$listen()
+#' }
 #' }
 #'
-#' @section Arguments:
-#' \describe{
-#'     \item{worker:}{A \code{Worker} object.}
-#'     \item{FUN:}{Character. Name of the function to be executed in background.}
-#'     \item{params:}{List object mapping parameters to values.
-#'                   E.g. list('param'='value').}
-#'     \item{backend_url:}{A url string of the following format: "provider://host:port".}
-#'     \item{id:}{A unique identifier for the task.}
-#' }
 #' @name Worker
 NULL
 
@@ -50,15 +43,15 @@ Worker <- R6::R6Class(
                 self$current_task = msg$task_id
 
                 tryCatch({ do.call(msg$task, msg$args) },
-                    error=function(e) { self$errors = e },
-                    warning=function(w) { self$warnings = w },
+                    error=function(e) {self$errors=gsub('\n', ';', as.character(e))},
+                    warning=function(w) {self$warnings=gsub('\n', ';', as.character(w))},
                     finally=self$report())
             }
         },
 
         report = function() {
             if (!is.null(self$errors)) {
-                status = 'FAILED'
+                status = 'ERROR'
             } else {
                 status = 'SUCCESS'
             }
@@ -81,6 +74,7 @@ Worker <- R6::R6Class(
     ),
 )
 
+#' @name Worker
 #' @export
 worker = function() {
     return(Worker$new())

@@ -2,29 +2,24 @@
 % Please edit documentation in R/worker.R
 \name{Worker}
 \alias{Worker}
+\alias{Worker}
+\alias{worker}
 \title{Worker object}
+\usage{
+worker()
+}
 \description{
 This object is responsible for running tasks consumed from the
 message broker. It uses processx to spawn background processes.
 }
 \section{Usage}{
 
+\dontrun{
 \preformatted{
  w <- worker()
 
- \dontrun{w$listen()}
+ w$listen()
 }
-}
-
-\section{Arguments}{
-
-\describe{
-    \item{worker:}{A \code{Worker} object.}
-    \item{FUN:}{Character. Name of the function to be executed in background.}
-    \item{params:}{List object mapping parameters to values.
-                  E.g. list('param'='value').}
-    \item{backend_url:}{A url string of the following format: "provider://host:port".}
-    \item{id:}{A unique identifier for the task.}
 }
 }
 

@@ -2,7 +2,6 @@
 
 export(Queue)
 export(Rworker)
-export(Task)
 export(Worker)
 export(rworker)
 export(worker)

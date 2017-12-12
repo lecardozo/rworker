@@ -10,8 +10,9 @@ process pool.
 }
 \section{Usage}{
 
-\preformatted{
- \dontrun{ 
+\dontrun{
+   \preformatted{
+ 
        # Create rworker instance
        rwork <- rworker()
 
@@ -25,9 +26,9 @@ process pool.
 
        # Listen to messages from message queue
        rwork$consume()
- }
+     }
 
-}
+ }
 }
 
 \section{Arguments}{
