@@ -39,7 +39,7 @@ Worker <- R6::R6Class(
             private$context = rzmq::init.context()
             private$psock = rzmq::init.socket(private$context, 'ZMQ_PULL')
             private$ssock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
-            rzmq::bind.socket(private$psock, "ipc:///tmp/rworkerp.sock")
+            rzmq::connect.socket(private$psock, "ipc:///tmp/rworkerp.sock")
             rzmq::connect.socket(private$ssock, "ipc:///tmp/rworkers.sock")
         },
 
@@ -47,8 +47,9 @@ Worker <- R6::R6Class(
             while(TRUE) {
                 msg = receive.socket(private$psock)
                 self$current_task = msg$task_id
+                task = private$inject_progress(msg$task, msg$task_id, private$ssock)
 
-                tryCatch({ do.call(msg$task, msg$args) },
+                tryCatch({ do.call(task, msg$args) },
                     error=function(e) {self$errors=gsub('\n', ';', as.character(e))},
                     warning=function(w) {self$warnings=gsub('\n', ';', as.character(w))},
                     finally=self$report())
@@ -76,7 +77,22 @@ Worker <- R6::R6Class(
     private = list(
         context = NULL,
         psock = NULL,
-        ssock = NULL
+        ssock = NULL,
+
+        inject_progress = function(fn, current_task, socket) {
+            expr <- substitute({
+                task_progress <- function(pg) {
+                    rzmq::send.socket(socket,
+                                data=list(status='PROGRESS',
+                                          progress=pg,
+                                          errors=NULL,
+                                          warnings=NULL,
+                                          task_id=current_task))
+                }
+            }, list(current_task=current_task, socket=socket))
+            body(fn) <- as.call(append(as.list(body(fn)), expr, 1))
+            return(fn)
+        }
     ),
 )
 

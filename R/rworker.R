@@ -99,7 +99,7 @@ Rworker <- R6::R6Class(
             private$context = rzmq::init.context()
             private$bind_ssock()
             self$start_pool(workers)
-            private$connect_psock()
+            private$bind_psock()
 
         },
 
@@ -165,23 +165,40 @@ Rworker <- R6::R6Class(
         },
 
         update_state = function() {
-            report = receive.socket(private$ssock, dont.wait=TRUE)
-            if (!is.null(report)) {
-                message = list(status=report$status,
-                               result=NULL,
-                               task_id=report$task_id,
-                               traceback=report$errors,
-                               children=NULL)
-                message = jsonlite::toJSON(message, auto_unbox=TRUE, null='null')
-                if (report$status == 'ERROR') {
-                    string = glue::glue('Task {report$task_id} failed with error: {report$errors}')
-                    log_it(string, 'error')
-                } else if (report$status == 'SUCCESS') {
-                    string = glue::glue('Task {report$task_id} succeeded')
-                    log_it(string, 'success')
+            report = TRUE
+            while (!is.null(report)) {
+                report = receive.socket(private$ssock, dont.wait=TRUE)
+                if (!is.null(report)) {
+                    if (report$status == 'ERROR') {
+                        message = list(status=report$status,
+                                       result=NULL,
+                                       task_id=report$task_id,
+                                       traceback=report$errors,
+                                       children=NULL)
+                        string = glue::glue('Task {report$task_id} failed with error: {report$errors}')
+                        log_it(string, 'error')
+                    } else if (report$status == 'PROGRESS') {
+                        message = list(status=report$status,
+                                       result=list(progress=report$progress),
+                                       task_id=report$task_id,
+                                       traceback=report$errors,
+                                       children=NULL)
+                        string = glue::glue('Task {report$task_id} progress: {report$progress}')
+                        log_it(string, 'success')
+
+                    } else if (report$status == 'SUCCESS') {
+                        message = list(status=report$status,
+                                       result=TRUE,
+                                       task_id=report$task_id,
+                                       traceback=report$errors,
+                                       children=NULL)
+                        string = glue::glue('Task {report$task_id} succeeded')
+                        log_it(string, 'success')
+                    }
+                    message = jsonlite::toJSON(message, auto_unbox=TRUE, null='null')
+                    self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),
+                                    message)
                 }
-                self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),
-                                 message)
             }
         },
 
@@ -212,9 +229,9 @@ Rworker <- R6::R6Class(
             return(list(task=task, params=params, task_id=task_id))
         },
 
-        connect_psock = function() {
+        bind_psock = function() {
             private$psock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
-            rzmq::connect.socket(private$psock, "ipc:///tmp/rworkerp.sock")
+            rzmq::bind.socket(private$psock, "ipc:///tmp/rworkerp.sock")
         },
 
         bind_ssock = function() {
