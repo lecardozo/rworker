@@ -105,14 +105,14 @@ rwork &lt;-<span class="st"> </span><span class="kw">rworker</span>(<span class=
 </div>
 <div id="task-execution-progress" class="section level4">
 <h4>Task execution progress</h4>
-<p>Sometimes is nice to now in which point of execution your task currently is. You can do this using the <code>task_progress</code>.</p>
+<p>Sometimes is nice to now in which point of execution your task currently is. You can do this using the <code>task_progress</code> function.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(<span class="cf">function</span>(){
   <span class="kw">Sys.sleep</span>(<span class="dv">5</span>)
   <span class="kw">task_progress</span>(<span class="dv">50</span>) <span class="co"># 50% progress</span>
   <span class="kw">Sys.sleep</span>(<span class="dv">5</span>)
   <span class="kw">task_progress</span>(<span class="dv">100</span>) <span class="co"># 100% progress</span>
 }) <span class="op">%&gt;%</span><span class="st"> </span>rwork<span class="op">$</span><span class="kw">task</span>(<span class="dt">name=</span><span class="st">'task_with_progress'</span>)</code></pre></div>
-<p>On Celery side, the progress information is store inside the <code>.result['progress']</code> attribute of the <code>AsyncResult</code> object</p>
+<p>On the Celery side, the progress information is stored inside the <code>.result['progress']</code> attribute of the <code>AsyncResult</code> object.</p>
 </div>
 </div>
 <div id="consuming-ters" class="section level2">

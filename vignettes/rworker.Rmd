@@ -49,7 +49,7 @@ library(magrittr)
 The `name` argument must be unique, since it's used to identify the correct task to be executed.
 
 #### Task execution progress
-Sometimes is nice to now in which point of execution your task currently is. You can do this using the `task_progress`.
+Sometimes is nice to now in which point of execution your task currently is. You can do this using the `task_progress` function.
 ```r
 (function(){
   Sys.sleep(5)
@@ -58,7 +58,7 @@ Sometimes is nice to now in which point of execution your task currently is. You
   task_progress(100) # 100% progress
 }) %>% rwork$task(name='task_with_progress')
 ```
-On Celery side, the progress information is store inside the `.result['progress']` attribute of the `AsyncResult` object
+On the Celery side, the progress information is stored inside the `.result['progress']` attribute of the `AsyncResult` object.
 
 ## Consuming *TERs*
 Now that the desired tasks were alredy registered, we just need to listen for new task execution requests
