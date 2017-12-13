@@ -4,3 +4,4 @@
 .Rbuildignore
 rworker.Rproj
 R/*sw*
+inst/doc
