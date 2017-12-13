@@ -2,33 +2,30 @@
 % Please edit documentation in R/worker.R
 \name{Worker}
 \alias{Worker}
+\alias{worker}
 \title{Worker object}
+\usage{
+worker()
+}
 \description{
-This object is responsible for running tasks consumed from the
-message broker. It uses processx to spawn background processes.
+This object listens for tasks sent by some Rworker instance.
+After running, the status of the execution is sent back
+to the Rworker instance.
 }
 \section{Usage}{
-
-\preformatted{
-dummy1 <- function(){Sys.sleep(5); print('dummy1')}
-dummy2 <- function(){Sys.sleep(5); print('dummy2')}
-
-tasks <- Tasks$new(tasklist=list(dummy1=dummy1, dummy2=dummy2))
-
-worker1 <- Worker$new(FUN='dummy1',tasks=tasks)
-worker2 <- Worker$new(FUN='dummy2',tasks=tasks)
+\preformatted{w <- worker()
 }
 }
 
-\section{Arguments}{
+\section{Details}{
 
-\describe{
-    \item{worker:}{A \code{Worker} object.}
-    \item{FUN:}{Character. Name of the function to be executed in background.}
-    \item{params:}{List object mapping parameters to values.
-                  E.g. list('param'='value').}
-    \item{backend_url:}{A url string of the following format: "provider://host:port".}
-    \item{id:}{A unique identifier for the task.}
-}
+\code{$listen()} listens for tasks sent by the Rworker instance
+\code{$report()} returns the task execution state to Rworker instance
 }
 
+\examples{
+\dontrun{
+w <- worker()
+w$listen()
+}
+}

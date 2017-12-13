@@ -8,16 +8,23 @@ BugReports: https://github.com/lecardozo/rworker/issues
 Depends:
     R (>= 3.4.0)
 Imports:
+    base64enc,
+    crayon,
+    futile.logger,
+    glue,
+    jsonlite,
+    processx,
     R6,
     redux,
-    jsonlite,
-    base64enc,
-    processx,
-    glue,
-    futile.logger
+    rzmq,
+    stringr
 Suggests:
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
+Roxygen: list(markdown = TRUE)
+VignetteBuilder: knitr
