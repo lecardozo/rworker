@@ -179,8 +179,7 @@ Rworker <- R6::R6Class(
                         log_it(string, 'success')
                     }
                     message = jsonlite::toJSON(message, auto_unbox=TRUE, null='null')
-                    self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),
-                                    message)
+                    self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),message)
                 }
             }
         },
@@ -194,8 +193,8 @@ Rworker <- R6::R6Class(
         register_backend = function(url) {
             backend = parse_url(url)
             if (backend[["provider"]] == "redis") {
-                return(redux::hiredis(host=backend[["host"]],
-                                      port=backend[["port"]]))
+                self$backend = redux::hiredis(host=backend[["host"]],
+                                      port=backend[["port"]])
             }
         },
 
@@ -233,8 +232,8 @@ Rworker <- R6::R6Class(
 
         teardown_cluster = function() {
             self$kill_pool()
-            rzmq::disconnect.socket(private$ssock)
-            rzmq::disconnect.socket(private$psock)
+            rzmq::disconnect.socket(private$ssock, "ipc:///tmp/rworkers.sock")
+            rzmq::disconnect.socket(private$psock, "ipc:///tmp/rworkerp.sock")
         }
 
     ),
