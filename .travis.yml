@@ -6,5 +6,3 @@ cache: packages
 before_install:
     - sudo apt-get -qq update
     - sudo apt-get install -y libhiredis-dev libzmq3-dev
-    - find / -name 'hiredis'
-    - pkg-config hiredis --cflags --libs
