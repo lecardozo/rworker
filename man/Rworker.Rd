@@ -36,9 +36,11 @@ connection is established during instantiation.
 
 \code{$kill_pool()} kills all processes in the background process pool
 
+\code{$pool} processes list
+
 \code{$task()} registers function as task to be remotelly executed
 
-\code{$tasks()} returns all registered tasks
+\code{$tasks} list of registered tasks
 
 \code{$consume()} listens for message broker messages and send them to be executed
 by the worker process pool
@@ -61,7 +63,7 @@ myfun <- function() {
 rwork$task(myfun, name='long_running_task')
 
 # Send task for background execution
-rwork$execute('long_running_task')
+rwork$execute(task='long_running_task', params=list(), task_id=123)
 
 # Listen to messages from message queue
 rwork$consume()
