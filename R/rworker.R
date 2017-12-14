@@ -31,9 +31,11 @@ NULL
 #'
 #' `$kill_pool()` kills all processes in the background process pool
 #'
+#' `$pool` processes list
+#'
 #' `$task()` registers function as task to be remotelly executed
 #'
-#' `$tasks()` returns all registered tasks
+#' `$tasks` list of registered tasks
 #'
 #' `$consume()` listens for message broker messages and send them to be executed
 #'  by the worker process pool
@@ -73,6 +75,10 @@ Rworker <- R6::R6Class(
     active = list(
         pool = function() {
             return(private$workers_list)
+        },
+        
+        tasks = function() {
+            return(private$tasklist)
         }
     ),
 
@@ -81,43 +87,21 @@ Rworker <- R6::R6Class(
         workers = NULL,
         queue = NULL,
         backend = NULL,
+        queue_url = NULL,
+        backend_url = NULL,
 
         initialize = function(qname='celery', workers=1,
                               queue="redis://localhost:6379",
                               backend="redis://localhost:6379"){
-            parsed = parse_url(queue)
-            self$queue = do.call(Queue$new, append(parsed, list(qname=qname)))
+            self$queue_url = queue
             self$qname = qname
             self$workers = workers
-            self$backend = self$register_backend(backend)
+            self$backend_url = backend
 
             private$rscript = Sys.which('Rscript')[['Rscript']]
             private$wproc = system.file('wprocess', package='rworker')
             private$tasklist = list()
 
-            # ZMQ initialization
-            private$context = rzmq::init.context()
-            private$bind_ssock()
-            self$start_pool(workers)
-            private$bind_psock()
-
-        },
-
-        # Start processes pool
-        start_pool = function(workers) {
-            private$workers_list = lapply(1:workers, function(x){
-                                processx::process$new(command=private$rscript,
-                                                      args=private$wproc,
-                                                      stdout='|',stderr='|')
-                              })
-        },
-
-        # Kill process pool
-        kill_pool = function() {
-            d = lapply(private$workers_list, function(p){
-                    p$kill()
-                })
-            private$workers_list = list()
         },
 
         # Create and register new task 
@@ -125,13 +109,13 @@ Rworker <- R6::R6Class(
             private$tasklist[[name]] = FUN
         },
 
-        # Return registered tasks
-        tasks = function() {
-            return(private$tasklist)
-        },
 
         # Listen for new messages from message queue
         consume = function(verbose=TRUE) {
+            register_queue(self$queue_url)
+            register_backend(self$backend_url)
+            bootstrap_cluster(self$workers)
+
             log_it(
               glue::glue(
                 'Listening to {self$queue$provider} in {self$queue$host}...'
@@ -155,7 +139,7 @@ Rworker <- R6::R6Class(
                     self$update_state()
                     Sys.sleep(0.1)
                 }
-            }, finally = self$kill_pool())
+            }, finally = self$teardown_cluster())
         },
 
         execute = function(task, params, task_id) {
@@ -202,12 +186,56 @@ Rworker <- R6::R6Class(
             }
         },
 
+        register_queue = function(url) {
+            parsed = parse_url(url)
+            self$queue = do.call(Queue$new, append(parsed, 
+                                                   list(qname=self$qname)))
+        },
+
         register_backend = function(url) {
             backend = parse_url(url)
             if (backend[["provider"]] == "redis") {
                 return(redux::hiredis(host=backend[["host"]],
                                       port=backend[["port"]]))
             }
+        },
+
+        # Start processes pool
+        start_pool = function(workers) {
+            running = lapply(private$workers_list, function(p) {
+                            p$is_alive()})
+            running = sum(unlist(running))
+
+            if (running == self$workers) {
+                warning('Process pool already running')
+                return()
+            }
+            private$workers_list = lapply(1:workers, function(x){
+                                processx::process$new(command=private$rscript,
+                                                      args=private$wproc,
+                                                      stdout='|',stderr='|')
+                              })
+        },
+
+        # Kill process pool
+        kill_pool = function() {
+            d = lapply(private$workers_list, function(p){
+                    p$kill()
+                })
+            private$workers_list = list()
+        },
+
+        bootstrap_cluster = function(workers) {
+            private$context = rzmq::init.context()
+            private$bind_ssock()
+            self$start_pool(workers)
+            private$bind_psock()
+        },
+
+        teardown_cluster = function() {
+            self$kill_pool()
+            rzmq::disconnect.socket(private$ssock)
+            rzmq::disconnect.socket(private$psock)
         }
 
     ),
@@ -219,6 +247,7 @@ Rworker <- R6::R6Class(
         context = NULL,
         psock = NULL,
         ssock = NULL,
+        wproc = NULL,
 
         process_msg = function(msg) {
             action = jsonlite::fromJSON(msg)
