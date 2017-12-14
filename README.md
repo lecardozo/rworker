@@ -1,6 +1,5 @@
 
-# rworker
-[![Travis-CI Build Status](https://travis-ci.org/lecardozo/rworker.svg?branch=master)](https://travis-ci.org/lecardozo/rworker)
+# rworker [![Travis-CI Build Status](https://travis-ci.org/lecardozo/rworker.svg?branch=master)](https://travis-ci.org/lecardozo/rworker)
 Long running (and remote) tasks execution in R mediated by Redis.
 ## Motivation
 The main motivation of this package was the need for executing long running R functions
