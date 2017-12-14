@@ -111,9 +111,9 @@ Rworker <- R6::R6Class(
 
         # Listen for new messages from message queue
         consume = function(verbose=TRUE) {
-            register_queue(self$queue_url)
-            register_backend(self$backend_url)
-            bootstrap_cluster(self$workers)
+            self$register_queue(self$queue_url)
+            self$register_backend(self$backend_url)
+            self$bootstrap_cluster(self$workers)
 
             log_it(
               glue::glue(
