@@ -36,6 +36,7 @@ Worker <- R6::R6Class(
         current_task = NULL,
 
         initialize = function() {
+            self$warnings = c()
             private$context = rzmq::init.context()
             private$psock = rzmq::init.socket(private$context, 'ZMQ_PULL')
             private$ssock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
@@ -50,9 +51,11 @@ Worker <- R6::R6Class(
                 task = private$inject_progress(msg$task, msg$task_id, private$ssock)
 
                 tryCatch({ 
-                    withCallingHandlers({
-                       do.call(task, msg$args)
-                    }, warning=function(w) {self$warnings=gsub('\n', ';', as.character(w))}) 
+                    suppressWarnings({
+                        withCallingHandlers({
+                            do.call(task, msg$args)
+                        }, warning=function(w) {self$warnings=c(self$warnings, gsub('\n', ';', as.character(w)))})
+                    })
                 },
                     error=function(e) {self$errors=gsub('\n', ';', as.character(e))},
                     finally=self$report()
