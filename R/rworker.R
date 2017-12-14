@@ -179,8 +179,8 @@ Rworker <- R6::R6Class(
                         log_it(string, 'success')
                     }
                     message = jsonlite::toJSON(message, auto_unbox=TRUE, null='null')
-                    self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),
-                                    message)
+                    print(message)
+                    self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),message)
                 }
             }
         },
