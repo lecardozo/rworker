@@ -194,8 +194,8 @@ Rworker <- R6::R6Class(
         register_backend = function(url) {
             backend = parse_url(url)
             if (backend[["provider"]] == "redis") {
-                return(redux::hiredis(host=backend[["host"]],
-                                      port=backend[["port"]]))
+                self$backend = redux::hiredis(host=backend[["host"]],
+                                      port=backend[["port"]])
             }
         },
 
