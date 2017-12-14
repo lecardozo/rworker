@@ -1,10 +1,9 @@
 # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
 
 language: R
-sudo: required 
+sudo: false 
 cache: packages
-addons:
-    apt:
-        packages:
-            - libzmq3-dev
-            - libhiredis-dev
+
+before_install:
+    - sudo apt-get -qq update
+    - sudo apt-get install -y libhiredis-dev libzmq3-dev
