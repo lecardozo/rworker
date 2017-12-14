@@ -233,8 +233,8 @@ Rworker <- R6::R6Class(
 
         teardown_cluster = function() {
             self$kill_pool()
-            rzmq::disconnect.socket(private$ssock)
-            rzmq::disconnect.socket(private$psock)
+            rzmq::disconnect.socket(private$ssock, "ipc:///tmp/rworkers.sock")
+            rzmq::disconnect.socket(private$psock, "ipc:///tmp/rworkerp.sock")
         }
 
     ),
