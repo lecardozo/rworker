@@ -35,6 +35,3 @@ from celery import Celery
 worker = Celery('app', broker="redis://localhost:6379/0", backend="redis://localhost:6379/0")
 worker.send_task('long_running_task')
 ```
-## Future decisions / TODO
-- [x] ZeroMQ for master~worker communication
-- [ ] Integration tests or mocking?
