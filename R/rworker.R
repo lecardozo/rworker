@@ -171,7 +171,7 @@ Rworker <- R6::R6Class(
 
                     } else if (report$status == 'SUCCESS') {
                         message = list(status=report$status,
-                                       result=TRUE,
+                                       result=list(warnings=report$warnings),
                                        task_id=report$task_id,
                                        traceback=report$errors,
                                        children=NULL)
