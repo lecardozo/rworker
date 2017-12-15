@@ -134,7 +134,6 @@ Rworker <- R6::R6Class(
                                      params=procmsg[['params']],
                                      task_id=procmsg[['task_id']])
                     }
-
                     self$update_state()
                     Sys.sleep(0.1)
                 }
@@ -154,7 +153,7 @@ Rworker <- R6::R6Class(
                 if (!is.null(report)) {
                     if (report$status == 'ERROR') {
                         message = list(status=report$status,
-                                       result=NULL,
+                                       result=list(warnings=report$warnings),
                                        task_id=report$task_id,
                                        traceback=report$errors,
                                        children=NULL)
@@ -171,11 +170,15 @@ Rworker <- R6::R6Class(
 
                     } else if (report$status == 'SUCCESS') {
                         message = list(status=report$status,
-                                       result=TRUE,
+                                       result=list(warnings=report$warnings),
                                        task_id=report$task_id,
                                        traceback=report$errors,
                                        children=NULL)
-                        string = glue::glue('Task {report$task_id} succeeded')
+                        if (length(report$warnings) > 0) {
+                            string = glue::glue('Task {report$task_id} finished with warnings: {report$warnings}')
+                        } else {
+                            string = glue::glue('Task {report$task_id} succeeded')
+                        }
                         log_it(string, 'success')
                     }
                     message = jsonlite::toJSON(message, auto_unbox=TRUE, null='null')
