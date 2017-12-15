@@ -50,12 +50,10 @@ Worker <- R6::R6Class(
                 self$current_task = msg$task_id
                 task = private$inject_progress(msg$task, msg$task_id, private$ssock)
 
-                tryCatch({ 
-                    do.call(task, msg$args)
-                },
+                tryCatch({ do.call(task, msg$args) },
                     error=function(e) {self$errors=gsub('\n', ';', as.character(e))},
-                    finally=self$report()
-                )
+                    warning=function(w) {self$warnings=gsub('\n', ';', as.character(w))},
+                    finally=self$report())
             }
         },
 
