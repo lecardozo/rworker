@@ -213,8 +213,7 @@ Rworker <- R6::R6Class(
             }
             private$workers_list = lapply(1:workers, function(x){
                                 processx::process$new(command=private$rscript,
-                                                      args=private$wproc,
-                                                      stdout='|',stderr='|')
+                                                      args=private$wproc)
                               })
         },
 
