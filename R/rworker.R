@@ -110,11 +110,16 @@ Rworker <- R6::R6Class(
         },
 
         # Listen for new messages from message queue
-        consume = function(verbose=TRUE) {
+        consume = function(verbose=TRUE, read_workers_streams=FALSE) {
             self$register_queue(self$queue_url)
             self$register_backend(self$backend_url)
             self$bootstrap_cluster(self$workers)
-
+            if (!read_workers_streams) {
+                lapply(self$pool, function(p) {
+                    close(p$get_output_connection())
+                    close(p$get_error_connection())
+                })
+            }
             log_it(
               glue::glue(
                 'Listening to {self$queue$provider} in {self$queue$host}...'
@@ -135,6 +140,14 @@ Rworker <- R6::R6Class(
                                      task_id=procmsg[['task_id']])
                     }
                     self$update_state()
+                    if (read_workers_streams) {
+                        lapply(self$pool, function(p) {
+                            out <- p$read_output_lines()
+                            err <- p$read_error_lines()
+                            if (length(out) > 0) print(out)
+                            if (length(err) > 0) print(err)
+                        })
+                    }
                     Sys.sleep(0.1)
                 }
             }, finally = self$teardown_cluster())
@@ -213,7 +226,8 @@ Rworker <- R6::R6Class(
             }
             private$workers_list = lapply(1:workers, function(x){
                                 processx::process$new(command=private$rscript,
-                                                      args=private$wproc)
+                                                      args=private$wproc,
+                                                      stdout="|", stderr="|")
                               })
         },
 
