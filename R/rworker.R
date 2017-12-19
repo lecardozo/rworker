@@ -110,16 +110,10 @@ Rworker <- R6::R6Class(
         },
 
         # Listen for new messages from message queue
-        consume = function(verbose=TRUE, read_workers_streams=FALSE) {
+        consume = function(verbose=TRUE, pipe=FALSE) {
             self$register_queue(self$queue_url)
             self$register_backend(self$backend_url)
-            self$bootstrap_cluster(self$workers)
-            if (!read_workers_streams) {
-                lapply(self$pool, function(p) {
-                    close(p$get_output_connection())
-                    close(p$get_error_connection())
-                })
-            }
+            self$bootstrap_cluster(self$workers, pipe=pipe)
             log_it(
               glue::glue(
                 'Listening to {self$queue$provider} in {self$queue$host}...'
@@ -140,7 +134,7 @@ Rworker <- R6::R6Class(
                                      task_id=procmsg[['task_id']])
                     }
                     self$update_state()
-                    if (read_workers_streams) {
+                    if (pipe) {
                         lapply(self$pool, function(p) {
                             out <- p$read_output_lines()
                             err <- p$read_error_lines()
@@ -215,7 +209,7 @@ Rworker <- R6::R6Class(
         },
 
         # Start processes pool
-        start_pool = function(workers) {
+        start_pool = function(workers, pipe=FALSE) {
             running = lapply(private$workers_list, function(p) {
                             p$is_alive()})
             running = sum(unlist(running))
@@ -224,11 +218,19 @@ Rworker <- R6::R6Class(
                 warning('Process pool already running')
                 return()
             }
-            private$workers_list = lapply(1:workers, function(x){
-                                processx::process$new(command=private$rscript,
-                                                      args=private$wproc,
-                                                      stdout="|", stderr="|")
-                              })
+
+            if (pipe) {
+                private$workers_list = lapply(1:workers, function(x){
+                                    processx::process$new(command=private$rscript,
+                                                          args=private$wproc,
+                                                          stdout="|", stderr="|")
+                                  })
+            } else {
+                private$workers_list = lapply(1:workers, function(x){
+                                    processx::process$new(command=private$rscript,
+                                                          args=private$wproc)
+                                  })
+            }
         },
 
         # Kill process pool
@@ -239,10 +241,10 @@ Rworker <- R6::R6Class(
             private$workers_list = list()
         },
 
-        bootstrap_cluster = function(workers) {
+        bootstrap_cluster = function(workers, pipe=FALSE) {
             private$context = rzmq::init.context()
             private$bind_ssock()
-            self$start_pool(workers)
+            self$start_pool(workers, pipe=pipe)
             private$bind_psock()
         },
 

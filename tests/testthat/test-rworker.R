@@ -54,7 +54,7 @@ test_that('Tasks are successfully registred', {
 context('Rworker and worker communication')
 
 test_that('Rworker~worker communication works', {
-    rwork$bootstrap_cluster(workers)
+    rwork$bootstrap_cluster(workers, pipe=T)
     rwork$execute(task='dummy', params=list(), task_id=123)
     
     # give some time for communication
