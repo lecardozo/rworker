@@ -53,23 +53,22 @@ test_that('Tasks are successfully registred', {
 
 context('Rworker and worker communication')
 
+tereq <- list()
+tereq$task <- dummy
+tereq$kwargs <- list()
+tereq$task_id <- 123
+tereq$warnings <- list()
+tereq$errors <- list()
+tereq$status <- 'PENDING'
+
 test_that('Rworker~worker communication works', {
     rwork$bootstrap_cluster(workers, pipe=T)
-
-    tereq <- list()
-    tereq$task <- dummy
-    tereq$kwargs <- list()
-    tereq$task_id <- 123
-    tereq$warnings <- list()
-    tereq$errors <- list()
-    tereq$status <- 'PENDING'
 
     rwork$execute(tereq)
     
     # give some time for communication
     Sys.sleep(0.2)
 
-    print(rwork$pool)
     outputs = lapply(rwork$pool, function(p) {p$read_output_lines()})
     errors = lapply(rwork$pool, function(p) {p$read_error_lines()})
     
@@ -84,7 +83,7 @@ test_that('Rworker~worker communication works', {
 test_that('Message load balancing happens', {
     
     for (i in 1:2) {
-        rwork$execute(list(task=dummy, kwargs=list(), task_id=123, warnings=list(), errors=list()))
+        rwork$execute(tereq)
     }
     
     # give some time for communication

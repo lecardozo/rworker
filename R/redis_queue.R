@@ -36,8 +36,6 @@ RedisQueue <- R6::R6Class(
             } else {
                 self$name = name
             }
-            private$channel = redux::hiredis(host=self$host,
-                                             port=self$port)
         },
 
         pull = function() {
@@ -47,6 +45,11 @@ RedisQueue <- R6::R6Class(
 
         push = function(msg) {
             private$channel$LPUSH(self$name, msg)
+        },
+
+        connect = function() {
+            private$channel = redux::hiredis(host=self$host,
+                                             port=self$port)
         }
     ),
 

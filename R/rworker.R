@@ -167,8 +167,13 @@ Rworker <- R6::R6Class(
                     } else if (report$status == 'SUCCESS') {
                         log_it(
                             glue('Task {report$task_id} succeeded'), 'success')
+                        
+                        if (report$has_chain()) {
+                            self$trigger_task_callback(report)
+                        }
                     }
                     self$backend$store_result(report$task_id, report)
+                    
                 }
             }
         },
@@ -177,8 +182,16 @@ Rworker <- R6::R6Class(
             return(receive.socket(private$ssock, dont.wait=TRUE))
         },
 
+        trigger_task_callback = function(tereq) {
+            next_task = tereq$next_task()
+            nq = queue(self$queue_url, name=next_task$queue)
+            nq$connect()
+            nq$push(next_task$msg)
+        },
+
         register_queue = function(url) {
             self$queue = queue(url, name=self$qname)
+            self$queue$connect()
         },
 
         register_backend = function(url) {

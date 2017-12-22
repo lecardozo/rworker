@@ -32,7 +32,6 @@ Collate:
     'redis_backend.R'
     'backends.R'
     'logger.R'
-    'message.R'
     'redis_queue.R'
     'queues.R'
     'rworker.R'
