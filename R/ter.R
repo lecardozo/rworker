@@ -68,9 +68,15 @@ TER <- R6::R6Class(
                 self$body[[2]] = next_task_info$kwargs
                 # chain
                 if (length(self$chain$chain[-1]) == 0) {
-                    self$body[[3]] = list()
+                    self$body[[3]] = list(chain=NULL,
+                                          chord=NULL,
+                                          callbacks=NULL,
+                                          errbacks=NULL)
                 } else {
-                    self$body[[3]] = self$chain$chain[-1] 
+                    self$body[[3]] = list(chain=self$chain$chain[-1],
+                                          chord=NULL,
+                                          callbacks=NULL,
+                                          errbacks=NULL)
                 }
                 
                 # HEADERS
