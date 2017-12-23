@@ -159,23 +159,27 @@ Rworker <- R6::R6Class(
                 report = self$collect_report()
                 if (!is.null(report)) {
                     if (report$status == 'PROGRESS') {
+                        # class(report) == list
                         log_it(
                             glue('Task {report$task_id} progress: {report$progress}'),'info')
-                    } else if (report$status == 'FAILURE') {
-                        log_it(
-                            glue('Task {report$task_id} failed with error: {report$errors}'),'error')
-                    } else if (report$status == 'SUCCESS') {
-                        log_it(
-                            glue('Task {report$task_id} succeeded'), 'success')
                         
+                        self$backend$store_result(report$task_id, report)
+                    } else {
+                        if (report$status == 'FAILURE') {
+                            # class(report) == TER
+                            log_it(
+                                glue('Task {report$task_id} failed with error: {report$errors}'),'error')
+                        } else if (report$status == 'SUCCESS') {
+                            log_it(
+                                glue('Task {report$task_id} succeeded'), 'success')
+                        }
+                        
+                        self$backend$store_result(report$task_id, report)
+                        
+                        if (report$has_chain()) {
+                            self$trigger_task_callback(report)
+                        }
                     }
-                    
-                    self$backend$store_result(report$task_id, report)
-                    
-                    if (report$has_chain()) {
-                        self$trigger_task_callback(report)
-                    }
-                    
                 }
             }
         },
