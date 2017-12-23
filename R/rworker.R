@@ -18,7 +18,7 @@ NULL
 #' ```
 #'
 #' 
-#' @param qname The name of the message queue.
+#' @param name The name of the message queue.
 #' @param workers The number of background worker processes.
 #' @param queue A url string of type "provider://host:port".
 #' @param backend A url string of type "provider://host:port".
@@ -90,13 +90,15 @@ Rworker <- R6::R6Class(
         queue_url = NULL,
         backend_url = NULL,
 
-        initialize = function(qname='celery', workers=1,
+        initialize = function(name='celery', workers=1,
                               queue="redis://localhost:6379",
-                              backend="redis://localhost:6379"){
+                              backend){
             self$queue_url = queue
-            self$qname = qname
+            self$qname = name
             self$workers = workers
-            self$backend_url = backend
+            if (!missing(backend)) {
+                self$backend_url = backend
+            }
 
             private$rscript = Sys.which('Rscript')[['Rscript']]
             private$wproc = system.file('wprocess', package='rworker')
@@ -112,28 +114,28 @@ Rworker <- R6::R6Class(
         # Listen for new messages from message queue
         consume = function(verbose=TRUE, pipe=FALSE) {
             self$register_queue(self$queue_url)
-            self$register_backend(self$backend_url)
+            if (!is.null(self$backend_url)) {
+                self$register_backend(self$backend_url)
+            }
             self$bootstrap_cluster(self$workers, pipe=pipe)
-            log_it(
-              glue::glue(
-                'Listening to {self$queue$provider} in {self$queue$host}...'
-              ),
-              'info')
+            log_it(glue::glue('Listening to {self$queue_url}...'),'info')
 
             tryCatch({
+                # main loop
                 while (TRUE) {
                     msg = self$queue$pull()
                     # send job to worker
                     if (!is.null(msg)){
-                        procmsg = private$process_msg(msg)
-                        tsk = procmsg[['task']]
-                        prms = procmsg[['params']]
-                        task_id = procmsg[['task_id']]
-                        self$execute(task=procmsg[['task']],
-                                     params=procmsg[['params']],
-                                     task_id=procmsg[['task_id']])
+                        tereq = ter(msg)
+                        tereq$task = self$tasks[[tereq$taskname]]
+                        log_it(glue::glue("Received task {tereq$task_id}: {tereq$taskname}"), 'info')
+                        self$execute(tereq)
                     }
-                    self$update_state()
+                    
+                    if (!is.null(backend)) {
+                        self$update_state()
+                    }
+                    
                     if (pipe) {
                         lapply(self$pool, function(p) {
                             out <- p$read_output_lines()
@@ -147,65 +149,59 @@ Rworker <- R6::R6Class(
             }, finally = self$teardown_cluster())
         },
 
-        execute = function(task, params, task_id) {
-            send.socket(private$psock,
-                        data=list(task=private$tasklist[[task]],
-                                  args=params, task_id=task_id))
+        execute = function(tereq) {
+            send.socket(private$psock,data=tereq)
         },
 
         update_state = function() {
             report = TRUE
             while (!is.null(report)) {
-                report = receive.socket(private$ssock, dont.wait=TRUE)
+                report = self$collect_report()
                 if (!is.null(report)) {
-                    if (report$status == 'ERROR') {
-                        message = list(status=report$status,
-                                       result=list(warnings=report$warnings),
-                                       task_id=report$task_id,
-                                       traceback=report$errors,
-                                       children=NULL)
-                        string = glue::glue('Task {report$task_id} failed with error: {report$errors}')
-                        log_it(string, 'error')
-                    } else if (report$status == 'PROGRESS') {
-                        message = list(status=report$status,
-                                       result=list(progress=report$progress),
-                                       task_id=report$task_id,
-                                       traceback=report$errors,
-                                       children=NULL)
-                        string = glue::glue('Task {report$task_id} progress: {report$progress}')
-                        log_it(string, 'success')
-
-                    } else if (report$status == 'SUCCESS') {
-                        message = list(status=report$status,
-                                       result=list(warnings=report$warnings),
-                                       task_id=report$task_id,
-                                       traceback=report$errors,
-                                       children=NULL)
-                        if (length(report$warnings) > 0) {
-                            string = glue::glue('Task {report$task_id} finished with warnings: {report$warnings}')
-                        } else {
-                            string = glue::glue('Task {report$task_id} succeeded')
+                    if (report$status == 'PROGRESS') {
+                        # class(report) == list
+                        log_it(
+                            glue('Task {report$task_id} progress: {report$progress}'),'info')
+                        
+                        self$backend$store_result(report$task_id, report)
+                    } else {
+                        if (report$status == 'FAILURE') {
+                            # class(report) == TER
+                            log_it(
+                                glue('Task {report$task_id} failed with error: {report$errors}'),'error')
+                        } else if (report$status == 'SUCCESS') {
+                            log_it(
+                                glue('Task {report$task_id} succeeded'), 'success')
                         }
-                        log_it(string, 'success')
+                        
+                        self$backend$store_result(report$task_id, report)
+                        
+                        if (report$has_chain()) {
+                            self$trigger_task_callback(report)
+                        }
                     }
-                    message = jsonlite::toJSON(message, auto_unbox=TRUE, null='null')
-                    self$backend$SET(glue::glue('celery-task-meta-{report$task_id}'),message)
                 }
             }
         },
 
+        collect_report = function() {
+            return(receive.socket(private$ssock, dont.wait=TRUE))
+        },
+
+        trigger_task_callback = function(tereq) {
+            next_task = tereq$next_task()
+            nq = queue(self$queue_url, name=next_task$queue)
+            nq$connect()
+            nq$push(next_task$msg)
+        },
+
         register_queue = function(url) {
-            parsed = parse_url(url)
-            self$queue = do.call(Queue$new, append(parsed, 
-                                                   list(qname=self$qname)))
+            self$queue = queue(url, name=self$qname)
+            self$queue$connect()
         },
 
         register_backend = function(url) {
-            backend = parse_url(url)
-            if (backend[["provider"]] == "redis") {
-                self$backend = redux::hiredis(host=backend[["host"]],
-                                      port=backend[["port"]])
-            }
+            self$backend = backend(url)
         },
 
         # Start processes pool
@@ -265,15 +261,6 @@ Rworker <- R6::R6Class(
         ssock = NULL,
         wproc = NULL,
 
-        process_msg = function(msg) {
-            action = jsonlite::fromJSON(msg)
-            task = action$headers$task
-            task_id = action$headers$id
-            log_it(glue::glue("Received task {task_id}: {task}"), 'info')
-            params = jsonlite::fromJSON(rawToChar(base64enc::base64decode(action$body)))[[2]]
-            return(list(task=task, params=params, task_id=task_id))
-        },
-
         bind_psock = function() {
             private$psock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
             rzmq::bind.socket(private$psock, "ipc:///tmp/rworkerp.sock")
@@ -288,9 +275,9 @@ Rworker <- R6::R6Class(
 
 #' @rdname Rworker
 #' @export
-rworker <- function(qname='celery', workers=2,
+rworker <- function(name='celery', workers=2,
                     queue='redis://localhost:6379',
                     backend='redis://localhost:6379') {
-    return(Rworker$new(qname=qname, workers=workers, 
+    return(Rworker$new(name=name, workers=workers, 
                        queue=queue, backend=backend))
 }

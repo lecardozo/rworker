@@ -7,19 +7,19 @@ TestRworker = R6::R6Class("TestRworker",
                             rscript = function() {return(private$rscript)},
                             wproc = function() {return(private$wproc)}
                         ))
-qname = 'celery'
+name = 'celery'
 queue = 'redis://localhost:6379'
 backend = queue
 workers = 2
 
 dummy = function() { print('It worked') }
 
-rwork = TestRworker$new(qname=qname, queue=queue, backend=backend,
+rwork = TestRworker$new(name=name, queue=queue, backend=backend,
                         workers=workers)
 
 test_that('Rworker initilization works just fine', {
     expect_equal(rwork$queue_url, queue)
-    expect_equal(rwork$qname, qname)
+    expect_equal(rwork$qname, name)
     expect_equal(rwork$workers, workers)
     expect_equal(rwork$backend_url, backend)
     expect_true(rwork$rscript != '')
@@ -53,15 +53,25 @@ test_that('Tasks are successfully registred', {
 
 context('Rworker and worker communication')
 
+tereq <- list()
+tereq$task <- dummy
+tereq$kwargs <- list()
+tereq$task_id <- 123
+tereq$warnings <- list()
+tereq$errors <- list()
+tereq$status <- 'PENDING'
+
 test_that('Rworker~worker communication works', {
     rwork$bootstrap_cluster(workers, pipe=T)
-    rwork$execute(task='dummy', params=list(), task_id=123)
+
+    rwork$execute(tereq)
     
     # give some time for communication
     Sys.sleep(0.2)
 
     outputs = lapply(rwork$pool, function(p) {p$read_output_lines()})
     errors = lapply(rwork$pool, function(p) {p$read_error_lines()})
+    
     
     expect_equal(sum(grepl('worked', outputs)), 1)
     
@@ -73,7 +83,7 @@ test_that('Rworker~worker communication works', {
 test_that('Message load balancing happens', {
     
     for (i in 1:2) {
-        rwork$execute(task='dummy', params=list(), task_id=123)
+        rwork$execute(tereq)
     }
     
     # give some time for communication
@@ -88,6 +98,3 @@ test_that('Message load balancing happens', {
         expect_equal(e, character(0))                    
     })
 })
-
-
-

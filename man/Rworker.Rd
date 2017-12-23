@@ -5,11 +5,11 @@
 \alias{rworker}
 \title{Rworker object}
 \usage{
-rworker(qname = "celery", workers = 2, queue = "redis://localhost:6379",
+rworker(name = "celery", workers = 2, queue = "redis://localhost:6379",
   backend = "redis://localhost:6379")
 }
 \arguments{
-\item{qname}{The name of the message queue.}
+\item{name}{The name of the message queue.}
 
 \item{workers}{The number of background worker processes.}
 
@@ -63,7 +63,7 @@ myfun <- function() {
 rwork$task(myfun, name='long_running_task')
 
 # Send task for background execution
-rwork$execute(task='long_running_task', params=list(), task_id=123)
+rwork$execute('long_running_task')
 
 # Listen to messages from message queue
 rwork$consume()
