@@ -31,12 +31,8 @@ NULL
 Worker <- R6::R6Class(
     'Worker',
     public = list(
-        warnings = NULL,
-        errors = NULL,
-        current_task = NULL,
 
         initialize = function() {
-            self$warnings = c()
             private$context = rzmq::init.context()
             private$psock = rzmq::init.socket(private$context, 'ZMQ_PULL')
             private$ssock = rzmq::init.socket(private$context, 'ZMQ_PUSH')
@@ -44,42 +40,33 @@ Worker <- R6::R6Class(
             rzmq::connect.socket(private$ssock, "ipc:///tmp/rworkers.sock")
         },
 
-        listen = function() {
+        listen = function() { 
             while(TRUE) {
-                msg = receive.socket(private$psock)
-                self$current_task = msg$task_id
-                task = private$inject_progress(msg$task, msg$task_id, private$ssock)
+                tereq = receive.socket(private$psock)
+                private$inject_progress(tereq)
 
                 tryCatch({
                     suppressWarnings({
                         withCallingHandlers({
-                            do.call(task, msg$args)
+                            do.call(tereq$task, tereq$kwargs)
                         }, warning=function(w) {
-                            self$warnings=c(self$warnings,
+                            tereq$warns=c(tereq$warnings,
                                             gsub('\n', ';', as.character(w)))
                         })
                     })
                 },
-                    error=function(e) {self$errors=gsub('\n', ';', as.character(e))},
-                    finally=self$report())
+                    error=function(e) {tereq$errors=gsub('\n', ';', as.character(e))},
+                    finally=self$report(tereq))
             }
         },
 
-        report = function() {
-            if (!is.null(self$errors)) {
-                status = 'ERROR'
+        report = function(tereq) {
+            if (length(tereq$errors) > 0) {
+                tereq$status = 'FAILURE'
             } else {
-                status = 'SUCCESS'
+                tereq$status = 'SUCCESS'
             }
-
-            send.socket(private$ssock,
-                        data=list(status=status,
-                                  errors=self$errors,
-                                  warnings=self$warnings,
-                                  task_id=self$current_task))
-            self$errors = NULL
-            self$warnings = NULL
-            self$current_task = NULL
+            send.socket(private$ssock, data=tereq)
         }
     ),
 
@@ -88,19 +75,18 @@ Worker <- R6::R6Class(
         psock = NULL,
         ssock = NULL,
 
-        inject_progress = function(fn, current_task, socket) {
+        inject_progress = function(tereq) {
             expr <- substitute({
                 task_progress <- function(pg) {
                     rzmq::send.socket(socket,
-                                data=list(status='PROGRESS',
-                                          progress=pg,
-                                          errors=NULL,
-                                          warnings=NULL,
-                                          task_id=current_task))
+                                      data=list(status='PROGRESS',
+                                                progress=pg,
+                                                errors=NULL,
+                                                warnings=NULL,
+                                                task_id=id))
                 }
-            }, list(current_task=current_task, socket=socket))
-            body(fn) <- as.call(append(as.list(body(fn)), expr, 1))
-            return(fn)
+            }, list(id=tereq$task_id, socket=private$ssock))
+            body(tereq$task) <- as.call(append(as.list(body(tereq$task)), expr, 1))
         }
     ),
 )
