@@ -168,11 +168,13 @@ Rworker <- R6::R6Class(
                         log_it(
                             glue('Task {report$task_id} succeeded'), 'success')
                         
-                        if (report$has_chain()) {
-                            self$trigger_task_callback(report)
-                        }
                     }
+                    
                     self$backend$store_result(report$task_id, report)
+                    
+                    if (report$has_chain()) {
+                        self$trigger_task_callback(report)
+                    }
                     
                 }
             }
