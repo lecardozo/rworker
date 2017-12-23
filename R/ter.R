@@ -80,7 +80,6 @@ TER <- R6::R6Class(
                 self$headers$argsrepr = private$repr(self$body[[1]])
                 self$headers$id = next_task_info$options$task_id
                 self$headers$task = next_task_info$task
-                self$headers$eta = list(NULL)
 
                 # PROPERTIES
                 self$properties$correlation_id = self$headers$id
@@ -105,7 +104,7 @@ TER <- R6::R6Class(
                        properties=self$properties, 
                        "content-type"=self$content_type,
                        "content-encoding"=self$content_encoding)
-            return(jsonlite::toJSON(msg, auto_unbox=T))
+            return(jsonlite::toJSON(msg, auto_unbox=T, null='null'))
         }
     ),
 
