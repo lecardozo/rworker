@@ -50,7 +50,7 @@ Worker <- R6::R6Class(
                         withCallingHandlers({
                             do.call(tereq$task, tereq$kwargs)
                         }, warning=function(w) {
-                            self$warns=c(tereq$warnings,
+                            tereq$warns=c(tereq$warnings,
                                             gsub('\n', ';', as.character(w)))
                         })
                     })
