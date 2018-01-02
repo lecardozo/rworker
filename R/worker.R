@@ -56,7 +56,11 @@ Worker <- R6::R6Class(
                     })
                 },
                     error=function(e) {tereq$errors=gsub('\n', ';', as.character(e))},
-                    finally=self$report(tereq))
+                    finally= {
+                        self$report(tereq)
+                        gc()
+                    }
+                )
             }
         },
 
