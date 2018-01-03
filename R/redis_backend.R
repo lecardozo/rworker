@@ -33,7 +33,7 @@ RedisBackend <- R6::R6Class(
         store_result = function(id, msg) {
             if (msg$status == 'FAILURE') {
                 msg = list(status=msg$status,
-                       result=list(exc_message=msg$errors, exc_type=NULL),
+                       result=list(exc_message=msg$errors, exc_type='ValueError'),
                        task_id=msg$id,
                        traceback=msg$errors,
                        children=NULL)
