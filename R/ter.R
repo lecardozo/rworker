@@ -51,7 +51,7 @@ TER <- R6::R6Class(
         },
 
         has_chain = function() {
-            if (length(self$chain) > 0) {
+            if (length(self$chain$chain) > 0) {
                 return(TRUE)
             } else {
                 return(FALSE)
@@ -59,7 +59,7 @@ TER <- R6::R6Class(
         },
 
         next_task = function() {
-            if (!is.null(self$chain)) {
+            if (!is.null(self$chain$chain)) {
                 next_task_info =  self$chain$chain[[1]]
                 # BODY
                 # args
