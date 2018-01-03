@@ -31,11 +31,19 @@ RedisBackend <- R6::R6Class(
         },
 
         store_result = function(id, msg) {
-            msg = list(status=msg$status,
-                   result=list(progress=msg$progress),
-                   task_id=msg$id,
-                   traceback=msg$errors,
-                   children=NULL)
+            if (msg$status == 'FAILURE') {
+                msg = list(status=msg$status,
+                       result=list(exc_message=msg$errors, exc_type='ValueError'),
+                       task_id=msg$id,
+                       traceback=msg$errors,
+                       children=NULL)
+            } else {
+                msg = list(status=msg$status,
+                       result=list(progress=msg$progress),
+                       task_id=msg$id,
+                       traceback=msg$errors,
+                       children=NULL)
+            }
             msg = jsonlite::toJSON(msg, auto_unbox=TRUE, null='null')
             key = glue::glue('celery-task-meta-{id}')
             private$redis_client$SET(key, msg)
