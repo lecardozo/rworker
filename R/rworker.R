@@ -91,12 +91,16 @@ Rworker <- R6::R6Class(
         queue_url = NULL,
         backend_url = NULL,
 
-        initialize = function(name='celery', workers=1,
+        initialize = function(name='celery', workers,
                               queue="redis://localhost:6379",
                               backend){
             self$queue_url = queue
             self$qname = name
-            self$workers = workers
+            if (!missing(workers)) {
+                self$workers = workers
+            } else {
+                self$workers = ncores()
+            }
             if (!missing(backend)) {
                 self$backend_url = backend
             }
