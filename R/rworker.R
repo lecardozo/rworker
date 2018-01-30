@@ -2,6 +2,7 @@
 #' @import redux
 #' @importFrom jsonlite fromJSON toJSON
 #' @importFrom base64enc base64decode
+#' @importFrom processx process
 #' @import glue
 #' @import rzmq
 NULL
