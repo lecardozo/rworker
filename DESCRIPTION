@@ -2,7 +2,7 @@ Package: rworker
 Title: Background tasks runner
 Version: 0.0.0.9000
 Authors@R: person("Lucas", "Cardozo", email = "lucas.cardozo@usp.br", role = c("aut", "cre"))
-Description: rworker implements an easy interface for running background jobs in R sent via message broker.
+Description: rworker is a Celery worker for R functions.
 URL: https://github.com/lecardozo/rworker
 BugReports: https://github.com/lecardozo/rworker/issues
 Depends:
