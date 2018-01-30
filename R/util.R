@@ -7,7 +7,7 @@ parse_url = function(url) {
     return(parsed)
 }
 
-#' keywords internal
+#' @keywords internal
 # detectCores from Parallel package
 ncores = function(all.tests=FALSE, logical=TRUE){
 	systems <- list(linux = if (logical) "grep processor /proc/cpuinfo 2>/dev/null | wc -l" else "cat /proc/cpuinfo | grep 'cpu cores'| uniq | cut -f2 -d:", 

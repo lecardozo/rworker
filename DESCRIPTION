@@ -1,8 +1,10 @@
 Package: rworker
-Title: Celery worker for R tasks
-Version: 1.0.0
+Title: Celery Worker For R Tasks
+Version: 0.1.0
 Authors@R: person("Lucas", "Cardozo", email = "lucasecardozo@gmail.com", role = c("aut", "cre"))
-Description: rworker is a Celery worker for R functions.
+Description: Celery worker for R tasks. This package allows the user to
+             send asynchronous task execution requests from Python using 
+             Celery messaging protocol.
 URL: https://github.com/lecardozo/rworker
 BugReports: https://github.com/lecardozo/rworker/issues
 Depends:
@@ -22,13 +24,16 @@ Suggests:
     testthat,
     knitr,
     rmarkdown
-License: GPL-2
+SystemRequirements: 
+    zeromq, 
+    hiredis
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
-Collate: 
+Collate:
     'redis_backend.R'
     'backends.R'
     'logger.R'
