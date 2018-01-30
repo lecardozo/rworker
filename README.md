@@ -2,7 +2,7 @@
 # rworker [![Travis-CI Build Status](https://travis-ci.org/lecardozo/rworker.svg?branch=master)](https://travis-ci.org/lecardozo/rworker)
 Celery worker for R tasks.
 ## Motivation
-The main motivation of this package was the need for executing long running R functions
+The main motivation for this package was the need for executing long running R functions
 triggered by [Celery](https://github.com/celery/celery) (asynchronous task queue package for Python).
 
 ![Data flow](https://raw.githubusercontent.com/lecardozo/rworker/master/img/rworker.png)
