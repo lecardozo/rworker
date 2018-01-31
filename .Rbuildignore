@@ -4,3 +4,4 @@ docs/
 img/
 .RData
 .Rhistory
+docker/
