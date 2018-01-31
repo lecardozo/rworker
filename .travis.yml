@@ -22,9 +22,9 @@ script:
 - R CMD build .
 - R CMD check *tar.gz
 after_success:
-- if [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_COMMIT_MESSAGE" == "version bump" ]]; then
-  docker build -t lecardozo/rworker:latest ./docker ;
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then
   docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
+  docker build -t lecardozo/rworker ./docker;
   docker push lecardozo/rworker;
   fi
 
