@@ -1,13 +1,11 @@
 language: R
 services:
 - docker
+cache: packages
 env:
   global:
-    DOCKER_USERNAME:
-      secure: mJqtQ5h8iYnRIKzWYl0X++YfpTlgtG9mtVu9cBAY3Bb04pKQW1Y+VUL0tfwgUi6ZpAAr9NnYhqbn1fxRUPp//GFxlPQ8xsqLpCqOM+JN+2My/ROvFYBOB9bchKMdq9u7kW30LoJFn321VGa4jYz2O/cQkXfU/W9rG6WxbkI/gl1aRzcNYAGcZRqiQF4c9w6T0YGNqONAtbHLm+2j5oPt7fHQGSCHXG2o7M2ljaIgPtsHnnOFp/vhxvkcM/XGaiZkqKSEYGeGfEzJ/ungdBQt5fGk2Emq3F45zN+y7GapK8HtUgKqT2Y57YnLGuApLCzpoc8RJxZ3TIy4FqVgD5I/E9T1l57lpWhFDF34S6dyGZGxYwIcWT9LdIU8x0DnV93GwJ9NQV5FMXj0FPjwRr1XY7gCl2LVEna+AjwfIybBGsFodrZiYpdS440YKTwaLNSe7zRbDeNNhMZDGavzk4NOWYpPLixlfz6I8+sJ52F/W8dfG53ys/5zS//Lhy0PXPbKclykCCIk8bl6VcwyVpbWtGmAuQhj/thzi876dewJk5YxYsPIf9b7OwFdXWibXG56YkKxisiZPv5A9bfOcwKmV+MW/9prqMAPdaMYLr3DtLMUmq1CKXikWynfb3W8+ilJO9Xzf59TDF8moHOaZN5cwhAJ7OUTchAiLKzjokGYT8c=
-    DOCKER_PASSWORD:
-      secure: AwrkH8D1BYUKISPNjI/6QA5VEgJKf9bL1f+BtoQr5l85nq5UgQiB/rakKQbK3E9X0y3TFTR9/5uw4VGPxW1Eq5AYd5wYiWVBdg850HBNxxKT9oSjYsL3w0sa2wVprv+K6gneZkvBlc8BZOlMLjp9gD40bCs5nnODLFsFQ3IRhZF7jDysmgR4Q0GwAisbL/Gsk83DJ/dgVXyJ/vOfzIaRoRdwfbt8XV+ta9Ealc66ppiATGDYj4yIq71OL/a2kA0IWlDbVu+HIjWSLQ7dymE+fiSBwL80xWsaCoSTPsOQPID5xK2aw8M35eA/IS69VrMgTCKV5hVfAyJN+mGxpT6oOXr4XkbXNKr43WEgETr0PvLUr6z1wGv57oOOB4Tq3qGl9Wt397dh5gsz+8QtLaGJ+nMR5SuJOmjwymDJb7QXXteRaFMW1SuSAW4d80M1ZgwPQSQaktOMtpSrDLL3QWPC1+XlK9Y2qWfdAWXUjMgvz3VY+IrXG/jDm7HwrHFDXmt5tV+RX8ovmjj39/CbGIgHMgWjMwiHJQe5oOvKbpGzFbSHCc8ijidK7ezDoYm2nJDZT+1KIwb6pUrONn6VPxFSfSFQe3EIJpxZVVEyaWSKEE2Zm9bxB7+eekYL8BVUzz/Nu2Ts2tL6rLh4zZMQX4T4IHeqtaWonUOBxUbf696CIxY=
-cache: packages
+  - secure: cWtHWkR6r9vFxUt4/u3bmzCHLTxDyGJKqeUdc4DrtJjeW4tkAyxZBTXwdcoB3Mc5z46jI2Kd57axNnNPCjdSAkvTi6UxeuwBEhDDyDp1FUNZJsYXsQzkfsouD9UmWvUSZ1mQGW85dqIF2iZ9SurRUTGJLYKVojw0HDKux9wkRIHyH2tBI7msXQBfBOxAgGhJPR96ClS1BXJrmkKIk0Y/Lk0RQ/iAIQqhB9b+Ca+nF8Dc2Ks6VbsRBY1zSvW1uPUW/VQB5zQUa8G8ozE+qRVGkUMAx7F7CyExhsSaR9lXs1n7ObgDGAzCalASy3d7H4qoLm5DZjDC9xeWeQMDnKfeeAWCOu7csfEGMXnRbYg1v1pGDP3gJKA1mH2zqN/BpSSPwITi3gdYppMirYdCZYzQlqLdQ0ivu8KasdQ6gmWaQydI8YcP03t2RW/ClU4D91vQBIaow3kC/pFKkuDTXl/hbfERJSOp5LBbogIj1KIAlWqKUEYv+Y0WDPa3mmWcyeexVQsBlc62LUVsSErqWLy8WP/gnR1wOr50KccNRZFohpFqJqDvGHIZYZ6RLxKb8cqeAmurbLvMQvk41Lcts+wuMddvcAp5rau4PtV8kW3l53tyLXLR2YnLW3pBbxl3A5azOjrbbRhats7pSSNomv0Kiy51JL9aAhRZqlCWfH0VfC8=
+  - secure: jTRNtL+qnxr9gmrIBU0wdZ8Iee3Tz7G0uSgOKcEhF7VGoc3RBQfDGCUjxLsgtdqXUkB1WkvwZS3Xg4fMUIQneZcboUZbxbdpQXLvqlN4lxoKpxHhF6IKsTq5tzHnfCcUwV6BbCat/0qrYKEmYyV0DnCP5dISsiZfe1+nqXGXqoFvttGnhsYLiB85n2Bb1OmPA/vF6+nfMXcfs97KfPHiI6UwS0leboIDaIQbhY4bokP4RduqbU/5hOkIagVitphABecR5oF3MIe56fHoqFglejkvV15eyCEyWldk+wZJ++q3ujUCO7NUGpBHF4snfyJHfAAynV4c31CcWpLxxoL5LvumglyFgQD+uH2JFPI6Myv4pq4ljJsNn/otVDBIIIttSGSuHsK9a/CEzCR4rQ4LXNdHKdTYnctDP61okHWYuQSNdwYqKa9c3vUkEvizuyOVo4aRfn2YkArg7h+un61YfRx4TchJ/zKpUsAT4APjV9dT5HQeaA6DTrBlQBqEQd/2XGFd76Xk07dQJzFAPH7Wo2aSdtPX2gMkiJc8YkEr7+M5CzYJTaLU+BQeBMF5Eh+aU9ECcgUuQkG7UX+JndQpPxRuJrkjAyhq+ilH3PqmwUU77++0Cwc3Ruqqv9jkF3vFRuweT1DeyDt0laUopfJEOxF/PmCbFRJnNqTSnF6OH78=
 before_install:
 - sudo apt-get -qq update
 - sudo apt-get install -y libhiredis-dev libzmq3-dev
@@ -18,8 +16,6 @@ script:
 - R CMD build .
 - R CMD check *tar.gz
 after_success:
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then
-  docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  docker build -t lecardozo/rworker ./docker;
-  docker push lecardozo/rworker;
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then docker login -u "$DOCKER_USERNAME" -p
+  "$DOCKER_PASSWORD"; docker build -t lecardozo/rworker ./docker; docker push lecardozo/rworker;
   fi
