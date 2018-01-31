@@ -81,8 +81,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(rworker)
 
 url &lt;-<span class="st"> 'redis://localhost:6379'</span>
-rwork &lt;-<span class="st"> </span><span class="kw">rworker</span>(<span class="dt">qname=</span><span class="st">'celery'</span>, <span class="dt">queue=</span>url, <span class="dt">backend=</span>url, <span class="dt">workers=</span><span class="dv">2</span>)</code></pre></div>
-<p>The <code>qname</code> argument defines the name of the queue that we should listen for new <em>TERs</em>. By default, Celery queue name is ‘celery’. The <code>queue</code> and the <code>backend</code> arguments follow the <code>provider://address:port</code> format and define the provider and the address of the message queue and the task results backend, respectivelly. The last argument <code>workers</code> defines the number of background processes responsible for executing the incoming <em>TERs.</em></p>
+rwork &lt;-<span class="st"> </span><span class="kw">rworker</span>(<span class="dt">name=</span><span class="st">'celery'</span>, <span class="dt">queue=</span>url, <span class="dt">backend=</span>url, <span class="dt">workers=</span><span class="dv">2</span>)</code></pre></div>
+<p>The <code>name</code> argument defines the name of the queue that we should listen for new <em>TERs</em>. By default, Celery queue name is ‘celery’. The <code>queue</code> and the <code>backend</code> arguments follow the <code>provider://address:port</code> format and define the provider and the address of the message queue and the task results backend, respectivelly. The last argument <code>workers</code> defines the number of background processes responsible for executing the incoming <em>TERs.</em></p>
 </div>
 <div id="tasks" class="section level2">
 <h2>Tasks</h2>
@@ -137,7 +137,7 @@ rwork &lt;-<span class="st"> </span><span class="kw">rworker</span>(<span class=
 <span class="kw">library</span>(magrittr)
 
 url &lt;-<span class="st"> 'redis://localhost:6379'</span>
-rwork &lt;-<span class="st"> </span><span class="kw">rworker</span>(<span class="dt">qname=</span><span class="st">'celery'</span>, <span class="dt">queue=</span>url, <span class="dt">backend=</span>url, <span class="dt">workers=</span><span class="dv">2</span>)
+rwork &lt;-<span class="st"> </span><span class="kw">rworker</span>(<span class="dt">name=</span><span class="st">'celery'</span>, <span class="dt">queue=</span>url, <span class="dt">backend=</span>url, <span class="dt">workers=</span><span class="dv">2</span>)
 
 (<span class="cf">function</span>(){
   <span class="co"># Simulating long running function</span>

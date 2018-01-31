@@ -16,7 +16,7 @@ library(magrittr)
 redis_url <- 'redis://localhost:6379'
 
 # Instantiate Rworker object
-consumer <- rworker(qname='celery', workers=2, queue=redis_url, backend=redis_url)
+consumer <- rworker(name='celery', workers=2, queue=redis_url, backend=redis_url)
 
 # Register tasks
 (function(){
