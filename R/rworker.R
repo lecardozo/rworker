@@ -198,9 +198,7 @@ Rworker <- R6::R6Class(
 
         trigger_task_callback = function(tereq) {
             next_task = tereq$next_task()
-            print(next_task)
             nq = queue(self$queue_url, name=next_task$queue)
-            print(nq)
             nq$connect()
             nq$push(next_task$msg)
         },
