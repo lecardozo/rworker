@@ -38,8 +38,14 @@ RedisBackend <- R6::R6Class(
                        traceback=msg$errors,
                        children=NULL)
             } else {
+                # Prepare the result data - add a result property to 
+                # the list if result data is present
+                res_data <- list(progress=msg$progress)
+                if(!is.null(msg$result)) {
+                    res_data$result <- msg$result
+                }
                 msg = list(status=msg$status,
-                       result=list(progress=msg$progress),
+                       result=res_data,
                        task_id=msg$id,
                        traceback=msg$errors,
                        children=NULL)

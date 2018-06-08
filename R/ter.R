@@ -43,6 +43,7 @@ TER <- R6::R6Class(
         task=NULL,
         status='PENDING',
         progress=NULL,
+        result=NULL,
         warnings=character(0),
         errors=character(0),
         
