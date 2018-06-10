@@ -39,7 +39,7 @@ worker.send_task('long_running_task')
 #### Tutorial
 You can find more information about usage [here](https://lecardozo.github.io/rworker).
 
-## TODO (Not ordered y priority)
+## TODO (Not ordered by priority)
 - Add support for RabbitMQ, Kafka
 - Add support for different serialization methods
 - Implement worker acknowledgement
