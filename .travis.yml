@@ -1,21 +1,22 @@
 language: R
 services:
 - docker
-#cache: packages
+
 env:
   global:
   - secure: cWtHWkR6r9vFxUt4/u3bmzCHLTxDyGJKqeUdc4DrtJjeW4tkAyxZBTXwdcoB3Mc5z46jI2Kd57axNnNPCjdSAkvTi6UxeuwBEhDDyDp1FUNZJsYXsQzkfsouD9UmWvUSZ1mQGW85dqIF2iZ9SurRUTGJLYKVojw0HDKux9wkRIHyH2tBI7msXQBfBOxAgGhJPR96ClS1BXJrmkKIk0Y/Lk0RQ/iAIQqhB9b+Ca+nF8Dc2Ks6VbsRBY1zSvW1uPUW/VQB5zQUa8G8ozE+qRVGkUMAx7F7CyExhsSaR9lXs1n7ObgDGAzCalASy3d7H4qoLm5DZjDC9xeWeQMDnKfeeAWCOu7csfEGMXnRbYg1v1pGDP3gJKA1mH2zqN/BpSSPwITi3gdYppMirYdCZYzQlqLdQ0ivu8KasdQ6gmWaQydI8YcP03t2RW/ClU4D91vQBIaow3kC/pFKkuDTXl/hbfERJSOp5LBbogIj1KIAlWqKUEYv+Y0WDPa3mmWcyeexVQsBlc62LUVsSErqWLy8WP/gnR1wOr50KccNRZFohpFqJqDvGHIZYZ6RLxKb8cqeAmurbLvMQvk41Lcts+wuMddvcAp5rau4PtV8kW3l53tyLXLR2YnLW3pBbxl3A5azOjrbbRhats7pSSNomv0Kiy51JL9aAhRZqlCWfH0VfC8=
   - secure: jTRNtL+qnxr9gmrIBU0wdZ8Iee3Tz7G0uSgOKcEhF7VGoc3RBQfDGCUjxLsgtdqXUkB1WkvwZS3Xg4fMUIQneZcboUZbxbdpQXLvqlN4lxoKpxHhF6IKsTq5tzHnfCcUwV6BbCat/0qrYKEmYyV0DnCP5dISsiZfe1+nqXGXqoFvttGnhsYLiB85n2Bb1OmPA/vF6+nfMXcfs97KfPHiI6UwS0leboIDaIQbhY4bokP4RduqbU/5hOkIagVitphABecR5oF3MIe56fHoqFglejkvV15eyCEyWldk+wZJ++q3ujUCO7NUGpBHF4snfyJHfAAynV4c31CcWpLxxoL5LvumglyFgQD+uH2JFPI6Myv4pq4ljJsNn/otVDBIIIttSGSuHsK9a/CEzCR4rQ4LXNdHKdTYnctDP61okHWYuQSNdwYqKa9c3vUkEvizuyOVo4aRfn2YkArg7h+un61YfRx4TchJ/zKpUsAT4APjV9dT5HQeaA6DTrBlQBqEQd/2XGFd76Xk07dQJzFAPH7Wo2aSdtPX2gMkiJc8YkEr7+M5CzYJTaLU+BQeBMF5Eh+aU9ECcgUuQkG7UX+JndQpPxRuJrkjAyhq+ilH3PqmwUU77++0Cwc3Ruqqv9jkF3vFRuweT1DeyDt0laUopfJEOxF/PmCbFRJnNqTSnF6OH78=
 before_install:
-- sudo apt-get -qq update
-- sudo apt-get install -y libhiredis-dev libzmq3-dev
-- sudo mv /usr/include/hiredis/* /usr/include/
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libhiredis-dev libzmq3-dev
+  - sudo mv /usr/include/hiredis/* /usr/include/
 install:
-- R -e 'devtools::install_deps(dep=T)'
+  - R --slave -e 'install.packages("devtools")'
+  - R --slave -e 'devtools::install_deps(dep=T)'
 script:
-- R CMD build .
-- R CMD check *tar.gz
+  - R CMD build .
+  - R CMD check *tar.gz
 after_success:
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then docker login -u "$DOCKER_USERNAME" -p
-  "$DOCKER_PASSWORD"; docker build -t lecardozo/rworker ./docker; docker push lecardozo/rworker;
-  fi
+  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then docker login -u "$DOCKER_USERNAME" -p
+    "$DOCKER_PASSWORD"; docker build -t lecardozo/rworker ./docker; docker push lecardozo/rworker;
+    fi
