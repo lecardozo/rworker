@@ -46,9 +46,10 @@ Worker <- R6::R6Class(
                 private$inject_progress(tereq)
 
                 tryCatch({
+                    result <- NULL
                     suppressWarnings({
                         withCallingHandlers({
-                            do.call(tereq$task, tereq$kwargs)
+                            result <- do.call(tereq$task, tereq$kwargs)
                         }, warning=function(w) {
                             tereq$warns=c(tereq$warnings,
                                             gsub('\n', ';', as.character(w)))
@@ -57,18 +58,24 @@ Worker <- R6::R6Class(
                 },
                     error=function(e) {tereq$errors=gsub('\n', ';', as.character(e))},
                     finally= {
-                        self$report(tereq)
+                        self$report(tereq, result)
                         gc()
                     }
                 )
             }
         },
 
-        report = function(tereq) {
+        report = function(tereq, result=NULL) {
             if (length(tereq$errors) > 0) {
                 tereq$status = 'FAILURE'
             } else {
                 tereq$status = 'SUCCESS'
+            }
+            # If a result was provided, add this to the task object
+            if(!is.null(result)) {
+                tereq$result <- result
+            } else {
+	        log_it(glue::glue('Task {tereq$task_id} has not returned a result...'),'info')	
             }
             send.socket(private$ssock, data=tereq)
         }
