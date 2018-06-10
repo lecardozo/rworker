@@ -36,6 +36,10 @@ worker = Celery('app', broker="redis://localhost:6379/0", backend="redis://local
 worker.send_task('long_running_task')
 ```
 
-## TODO
-- Add support for RabbitMQ
-- Add support for Kafka
+#### Tutorial
+You can find more information about usage [here](https://lecardozo.github.io/rworker).
+
+## TODO (Not ordered y priority)
+- Add support for RabbitMQ, Kafka
+- Add support for different serialization methods
+- Implement worker acknowledgement
