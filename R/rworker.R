@@ -173,10 +173,20 @@ Rworker <- R6::R6Class(
                         if (report$status == 'FAILURE') {
                             # class(report) == TER
                             log_it(
-                                glue('Task {report$task_id} failed with error: {report$errors}'),'error')
+                                glue('Task {report$task_id} failed with error: {report$errors}'),
+                                'error'
+                            )
                         } else if (report$status == 'SUCCESS') {
                             log_it(
-                                glue('Task {report$task_id} succeeded'), 'success')
+                                glue('Task {report$task_id} succeeded'),
+                                'success'
+                            )
+                            if (is.null(report$result)) {
+                                log_it(
+                                    glue('Task {report$task_id} has not returned a result...'),
+                                    'info'
+                                )
+                            }
                         }
                         
                         self$backend$store_result(report$task_id, report)

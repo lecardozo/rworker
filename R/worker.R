@@ -74,9 +74,8 @@ Worker <- R6::R6Class(
             # If a result was provided, add this to the task object
             if(!is.null(result)) {
                 tereq$result <- result
-            } else {
-	        log_it(glue::glue('Task {tereq$task_id} has not returned a result...'),'info')	
             }
+
             send.socket(private$ssock, data=tereq)
         }
     ),
