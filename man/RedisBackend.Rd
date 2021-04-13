@@ -7,12 +7,16 @@
 \item{host}{Character. Message broker instance address.}
 
 \item{port}{Numeric. Message broker port.}
+
+\item{password}{Character. Redis password.}
+
+\item{db}{Numeric. Database.}
 }
 \description{
 This object establishes an interface with Redis as a results backend.
 }
 \section{Usage}{
-\preformatted{backend <- RedisBackend$new(host='localhost', port=6379)
+\preformatted{backend <- RedisBackend$new(host='localhost', port=6379, password=NULL, db=0)
 backend$store_result(123, TRUE)
 }
 }

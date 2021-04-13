@@ -9,13 +9,18 @@
 \item{host}{Message broker instance address.}
 
 \item{port}{Message broker port.}
+
+\item{password}{Redis password}
+
+\item{db}{Database number}
 }
 \description{
 This object establishes an interface for Redis as a message broker
 }
 \section{Usage}{
 \preformatted{queue <- RedisQueue$new(host='localhost',
-                        port=6379, name='celery')
+                        port=6379, name='celery',
+                        password=NULL, db=0)
 msg <- queue$pull()
 queue$push(msg)
 }

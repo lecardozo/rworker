@@ -5,8 +5,12 @@
 \alias{rworker}
 \title{Rworker object}
 \usage{
-rworker(name = "celery", workers = 2, queue = "redis://localhost:6379",
-  backend = "redis://localhost:6379")
+rworker(
+  name = "celery",
+  workers = 2,
+  queue = "redis://localhost:6379",
+  backend = "redis://localhost:6379"
+)
 }
 \arguments{
 \item{name}{The name of the message queue.}
@@ -29,25 +33,25 @@ process pool.
 
 \section{Details}{
 
-\code{$new()} creates new Rworker instance. Process pool is started and Queue
+\verb{$new()} creates new Rworker instance. Process pool is started and Queue
 connection is established during instantiation.
 
-\code{$start_pool()} starts all processes in the background process pool
+\verb{$start_pool()} starts all processes in the background process pool
 
-\code{$kill_pool()} kills all processes in the background process pool
+\verb{$kill_pool()} kills all processes in the background process pool
 
-\code{$pool} processes list
+\verb{$pool} processes list
 
-\code{$task()} registers function as task to be remotelly executed
+\verb{$task()} registers function as task to be remotelly executed
 
-\code{$tasks} list of registered tasks
+\verb{$tasks} list of registered tasks
 
-\code{$consume()} listens for message broker messages and send them to be executed
+\verb{$consume()} listens for message broker messages and send them to be executed
 by the worker process pool
 
-\code{$execute()} method used to send tasks and arguments for background execution
+\verb{$execute()} method used to send tasks and arguments for background execution
 
-\code{$update_state()} method used to gather tasks execution status from worker pool
+\verb{$update_state()} method used to gather tasks execution status from worker pool
 
 \code{register_backend()} registers results backend
 }

@@ -8,11 +8,13 @@ NULL
 #'
 #' @section Usage:
 #' ```
-#' backend <- RedisBackend$new(host='localhost', port=6379)
+#' backend <- RedisBackend$new(host='localhost', port=6379, password=NULL, db=0)
 #' backend$store_result(123, TRUE)
 #' ```
 #' @param host Character. Message broker instance address.
 #' @param port Numeric. Message broker port.
+#' @param password Character. Redis password.
+#' @param db Numeric. Database.
 #' @name RedisBackend
 NULL
 
@@ -22,12 +24,18 @@ RedisBackend <- R6::R6Class(
     public = list(
         host = NULL,
         port = NULL,
-
-        initialize = function(host, port) {
+        password = NULL,
+        db = NULL,
+        
+        initialize = function(host='localhost', port=6379, password=NULL, db=0) {
             self$host = host
             self$port = port
+            self$password = password
+            self$db = db
             private$redis_client = redux::hiredis(host=host,
-                                                  port=port)
+                                                  port=port,
+                                                  password=password,
+                                                  db=db)
         },
 
         store_result = function(id, msg) {
