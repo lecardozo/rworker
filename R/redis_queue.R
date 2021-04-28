@@ -17,6 +17,7 @@ NULL
 #' @param name The name of the queue.
 #' @param host Message broker instance address.
 #' @param port Message broker port.
+#' @param username Ignored (included for consistency with other non-Redis queues)
 #' @param password Redis password
 #' @param db Database number
 #'
@@ -30,14 +31,19 @@ RedisQueue <- R6::R6Class(
         host = NULL,
         port = NULL,
         name = NULL,
+        username = NULL,
         password = NULL,
         db = NULL,
 
-        initialize = function(name='celery', host='localhost', port=6379, password=NULL, db=0) {
+        initialize = function(name='celery', host='localhost', port=6379, username=NULL, password=NULL, db=0) {
             self$host = host
             self$port = port
+            self$username = username
             self$password = password
             self$db = db
+            if (is.na(as.numeric(db2))) {
+                stop("db parameter must be numeric")
+            }
             if(missing(name)) {
                    stop('Must provide Queue name')
             } else {

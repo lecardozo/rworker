@@ -8,6 +8,8 @@
 
 \item{port}{Numeric. Message broker port.}
 
+\item{username}{Ignored (included for consistency with other non-Redis queues)}
+
 \item{password}{Character. Redis password.}
 
 \item{db}{Numeric. Database.}

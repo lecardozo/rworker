@@ -10,6 +10,8 @@
 
 \item{port}{Message broker port.}
 
+\item{username}{Ignored (included for consistency with other non-Redis queues)}
+
 \item{password}{Redis password}
 
 \item{db}{Database number}
