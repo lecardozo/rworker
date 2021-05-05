@@ -35,7 +35,7 @@ RedisBackend <- R6::R6Class(
             self$username = username
             self$password = password
             self$db = db
-            if (is.na(as.numeric(db2))) {
+            if (is.na(as.numeric(db))) {
                 stop("db parameter must be numeric")
             }
             private$redis_client = redux::hiredis(host=host,
