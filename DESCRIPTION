@@ -1,6 +1,6 @@
 Package: rworker
 Title: Celery Worker For R Tasks
-Version: 0.1.2
+Version: 0.2.0
 Authors@R: person("Lucas", "Cardozo", email = "lucasecardozo@gmail.com", role = c("aut", "cre"))
 Description: Celery worker for R tasks. This package allows the user to
              send asynchronous task execution requests from Python using 
