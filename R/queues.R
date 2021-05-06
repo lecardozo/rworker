@@ -9,6 +9,7 @@ queue = function(url, name) {
     provider = params$provider
     params$provider = NULL
     params$name = name
+    params <- params[!is.na(params)]
     return(
         do.call(QUEUES[[provider]]$new, params)
     )

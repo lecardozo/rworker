@@ -19,8 +19,8 @@ to the Rworker instance.
 
 \section{Details}{
 
-\code{$listen()} listens for tasks sent by the Rworker instance
-\code{$report()} returns the task execution state to Rworker instance
+\verb{$listen()} listens for tasks sent by the Rworker instance
+\verb{$report()} returns the task execution state to Rworker instance
 }
 
 \examples{

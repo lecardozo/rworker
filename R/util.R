@@ -1,9 +1,10 @@
 #' @importFrom stringr str_match
 #' @keywords internal
 parse_url = function(url) {
-    parsed = as.list(stringr::str_match(url, "(.*)://(.*):(\\d*)"))
-    parsed = parsed[-1]
-    names(parsed) <- c("provider", "host", "port")
+    parsed = as.list(stringr::str_match(url, 
+                                        "(.*)://((.+)?:(.+)@)?([^:/]*)(:(\\d*))?(/(\\w*))?"))
+    parsed = parsed[-c(1,3,7,9)]
+    names(parsed) <- c("provider", "username", "password", "host", "port", "db")
     return(parsed)
 }
 
